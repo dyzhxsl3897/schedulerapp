@@ -35,3 +35,7 @@ CREATE TABLE IF NOT EXISTS events (
     PRIMARY KEY (id),
     CONSTRAINT fk_event_user FOREIGN KEY (user_id) REFERENCES users (id)
 ) ENGINE=InnoDB;
+
+-- Insert a user with username 'lufei' and password '123'
+INSERT INTO users (id, username, password) 
+VALUES (UUID(), 'lufei', '123');
