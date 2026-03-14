@@ -23,8 +23,9 @@ const RegisterPage: React.FC = () => {
   };
 
   return (
+    <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
     <Container maxWidth="xs">
-      <Box sx={{ mt: 8, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
         <Paper elevation={3} sx={{ p: 4, width: '100%' }}>
           <Typography component="h1" variant="h5" align="center" gutterBottom>
             Sign Up
@@ -62,6 +63,7 @@ const RegisterPage: React.FC = () => {
         </Paper>
       </Box>
     </Container>
+    </Box>
   );
 };
 

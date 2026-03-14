@@ -147,7 +147,7 @@ const DashboardPage: React.FC = () => {
       </AppBar>
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <Grid container spacing={2} sx={{ p: 2, flexGrow: 1, overflow: 'hidden' }}>
+        <Grid container spacing={2} sx={{ p: 2, flexGrow: 1, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
           {/* Left: Scheduler */}
           <Grid size={{ xs: 12, md: 8, lg: 9 }}>
             <WeekScheduler 
