@@ -32,6 +32,8 @@ CREATE TABLE IF NOT EXISTS events (
     duration_minutes INT,
     is_completed BOOLEAN DEFAULT FALSE,
     user_id BINARY(16) NOT NULL,
+    created_at DATETIME(6),
+    updated_at DATETIME(6),
     PRIMARY KEY (id),
     CONSTRAINT fk_event_user FOREIGN KEY (user_id) REFERENCES users (id)
 ) ENGINE=InnoDB;

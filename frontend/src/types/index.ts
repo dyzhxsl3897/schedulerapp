@@ -29,4 +29,6 @@ export interface ScheduledEvent {
   durationMinutes?: number;
   isCompleted: boolean;
   userId: string;
+  createdAt?: string;
+  updatedAt?: string;
 }

@@ -13,7 +13,7 @@ interface DayColumnProps {
 }
 
 const START_HOUR = 15;
-const END_HOUR = 24;
+const END_HOUR = 21;
 const HOUR_HEIGHT = 60; // pixels
 
 const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, spareHeight }) => {
@@ -23,8 +23,24 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
     data: { date: dateStr },
   });
 
-  const timedEvents = events.filter(e => e.startTime);
-  const spareEvents = events.filter(e => !e.startTime);
+  const timedEvents = events.filter(e => {
+    if (!e.startTime) return false;
+    const hour = parseInt(e.startTime.split(':')[0], 10);
+    return hour >= START_HOUR && hour < END_HOUR;
+  });
+  const spareEvents = events.filter(e => {
+    if (!e.startTime) return true;
+    const hour = parseInt(e.startTime.split(':')[0], 10);
+    return hour < START_HOUR || hour >= END_HOUR;
+  }).sort((a, b) => {
+    // Events with startTime come first, sorted by startTime ascending
+    if (a.startTime && !b.startTime) return -1;
+    if (!a.startTime && b.startTime) return 1;
+    if (a.startTime && b.startTime) return a.startTime.localeCompare(b.startTime);
+    // Both without startTime: sort by createdAt ascending
+    if (a.createdAt && b.createdAt) return a.createdAt.localeCompare(b.createdAt);
+    return 0;
+  });
 
   const calculateTop = (startTime: string) => {
     const [hours, minutes] = startTime.split(':').map(Number);
@@ -136,7 +152,11 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
               onClick={(e) => e.stopPropagation()}
               sx={{ p: 0 }}
             />
-            <Typography variant="caption" noWrap sx={{ ml: 0.5 }}>{event.title}</Typography>
+            <Typography variant="caption" noWrap sx={{ ml: 0.5 }}>
+              {event.startTime
+                ? `${event.startTime.substring(0, 5)} (${event.durationMinutes}m) - ${event.title}`
+                : event.title}
+            </Typography>
           </Paper>
         ))}
       </Box>

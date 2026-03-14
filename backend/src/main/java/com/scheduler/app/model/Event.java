@@ -3,8 +3,11 @@ package com.scheduler.app.model;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.UUID;
 
@@ -38,6 +41,14 @@ public class Event {
 
     @Column(name = "user_id", nullable = false)
     private UUID userId;
+
+    @CreationTimestamp
+    @Column(name = "created_at", updatable = false)
+    private LocalDateTime createdAt;
+
+    @UpdateTimestamp
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
 
     public Event(String title, LocalDate date, LocalTime startTime, Integer durationMinutes, UUID userId, UUID activityId) {
         this.title = title;

@@ -12,7 +12,7 @@ interface WeekSchedulerProps {
 }
 
 const START_HOUR = 15;
-const END_HOUR = 24;
+const END_HOUR = 21;
 const HOUR_HEIGHT = 60;
 
 const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onToggleComplete, onSelectEvent }) => {
@@ -24,6 +24,11 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
     for (const event of events) {
       if (!event.startTime) {
         countsByDay[event.date] = (countsByDay[event.date] || 0) + 1;
+      } else {
+        const hour = parseInt(event.startTime.split(':')[0], 10);
+        if (hour < START_HOUR || hour >= END_HOUR) {
+          countsByDay[event.date] = (countsByDay[event.date] || 0) + 1;
+        }
       }
     }
     const maxCount = Math.max(0, ...Object.values(countsByDay));
