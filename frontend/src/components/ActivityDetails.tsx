@@ -9,7 +9,7 @@ interface ActivityDetailsProps {
 const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item }) => {
   if (!item) {
     return (
-      <Box sx={{ p: 2, height: '45vh' }}>
+      <Box sx={{ p: 2, flex: 1, minHeight: 0, overflowY: 'auto' }}>
         <Typography variant="h6" gutterBottom>Details</Typography>
         <Typography variant="body2" color="textSecondary">Select an activity or event to see details.</Typography>
       </Box>
@@ -19,7 +19,7 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item }) => {
   const isActivity = 'priority' in item;
 
   return (
-    <Box sx={{ p: 2, height: '45vh', overflowY: 'auto' }}>
+    <Box sx={{ p: 2, flex: 1, minHeight: 0, overflowY: 'auto' }}>
       <Typography variant="h6" gutterBottom>Details</Typography>
       <Paper elevation={0} variant="outlined" sx={{ p: 2 }}>
         <Typography variant="h6">{item.title}</Typography>

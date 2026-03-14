@@ -57,7 +57,7 @@ interface ActivityListProps {
 
 const ActivityList: React.FC<ActivityListProps> = ({ activities, onEdit, onDelete, onSelect }) => {
   return (
-    <Box sx={{ height: '45vh', overflowY: 'auto', p: 1 }}>
+    <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', p: 1 }}>
       <Typography variant="h6" gutterBottom>Activities</Typography>
       {activities.length === 0 ? (
         <Typography variant="body2" color="textSecondary">No activities. Create one!</Typography>

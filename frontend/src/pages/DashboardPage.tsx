@@ -51,8 +51,8 @@ const DashboardPage: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
-      const start = format(startOfWeek(new Date()), 'yyyy-MM-dd');
-      const end = format(endOfWeek(new Date()), 'yyyy-MM-dd');
+      const start = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+      const end = format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
       const res = await api.get(`/events?start=${start}&end=${end}`);
       setEvents(res.data);
     } catch (err) {
@@ -160,7 +160,7 @@ const DashboardPage: React.FC = () => {
 
           {/* Right: Panels */}
           <Grid size={{ xs: 12, md: 4, lg: 3 }}>
-            <Paper elevation={2} sx={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+            <Paper elevation={2} sx={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ p: 1, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1" fontWeight="bold">Backlog</Typography>
                 <Button 
@@ -180,7 +180,7 @@ const DashboardPage: React.FC = () => {
                 onSelect={setSelectedItem}
               />
               
-              <Box sx={{ borderTop: '2px solid #eee' }}>
+              <Box sx={{ borderTop: '2px solid #eee', flex: 1, minHeight: 0, overflow: 'hidden' }}>
                 <ActivityDetails item={selectedItem} />
               </Box>
             </Paper>

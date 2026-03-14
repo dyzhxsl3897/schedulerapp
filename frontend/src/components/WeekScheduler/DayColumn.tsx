@@ -9,13 +9,14 @@ interface DayColumnProps {
   events: ScheduledEvent[];
   onToggleComplete: (id: string, completed: boolean) => void;
   onSelectEvent: (event: ScheduledEvent) => void;
+  spareHeight: number;
 }
 
 const START_HOUR = 6;
 const END_HOUR = 24;
 const HOUR_HEIGHT = 60; // pixels
 
-const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent }) => {
+const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, spareHeight }) => {
   const dateStr = format(date, 'yyyy-MM-dd');
   const { isOver, setNodeRef } = useDroppable({
     id: `day-${dateStr}`,
@@ -52,7 +53,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
       </Box>
 
       {/* Spare Section */}
-      <Box sx={{ minHeight: 60, borderBottom: '2px dashed #ccc', p: 0.5, backgroundColor: '#fffbe6' }}>
+      <Box sx={{ minHeight: spareHeight, borderBottom: '2px dashed #ccc', p: 0.5, backgroundColor: '#fffbe6' }}>
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: '#888' }}>Spare Section</Typography>
         {spareEvents.map(event => (
           <Paper 
