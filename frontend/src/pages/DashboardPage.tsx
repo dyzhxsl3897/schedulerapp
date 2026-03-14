@@ -134,7 +134,7 @@ const DashboardPage: React.FC = () => {
   };
 
   return (
-    <Box sx={{ flexGrow: 1, height: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
@@ -147,7 +147,7 @@ const DashboardPage: React.FC = () => {
       </AppBar>
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <Grid container spacing={2} sx={{ p: 2, flexGrow: 1, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' }}>
+        <Grid container spacing={2} sx={{ p: 2, alignItems: 'flex-start', justifyContent: 'center' }}>
           {/* Left: Scheduler */}
           <Grid size={{ xs: 12, md: 8, lg: 9 }}>
             <WeekScheduler 
@@ -160,7 +160,7 @@ const DashboardPage: React.FC = () => {
 
           {/* Right: Panels */}
           <Grid size={{ xs: 12, md: 4, lg: 3 }}>
-            <Paper elevation={2} sx={{ height: '80vh', display: 'flex', flexDirection: 'column' }}>
+            <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ p: 1, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1" fontWeight="bold">Backlog</Typography>
                 <Button 

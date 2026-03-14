@@ -11,7 +11,7 @@ interface WeekSchedulerProps {
   onSelectEvent: (event: ScheduledEvent) => void;
 }
 
-const START_HOUR = 6;
+const START_HOUR = 15;
 const END_HOUR = 24;
 const HOUR_HEIGHT = 60;
 
@@ -31,7 +31,7 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
   }, [events]);
 
   return (
-    <Box sx={{ display: 'flex', height: '80vh', overflowY: 'auto', border: '1px solid #ddd', borderRadius: 1 }}>
+    <Box sx={{ display: 'flex', border: '1px solid #ddd', borderRadius: 1 }}>
       {/* Time Labels Column */}
       <Box sx={{ width: 60, borderRight: '1px solid #ddd', backgroundColor: '#f9f9f9', flexShrink: 0 }}>
         {/* Header placeholder to match DayColumn header */}
@@ -39,8 +39,6 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
           <Typography variant="subtitle2">&nbsp;</Typography>
           <Typography variant="caption">&nbsp;</Typography>
         </Box>
-        {/* Spare section spacer */}
-        <Box sx={{ minHeight: maxSpareHeight, borderBottom: '2px dashed #ccc' }} />
         {/* Time labels */}
         {Array.from({ length: END_HOUR - START_HOUR }).map((_, i) => (
           <Box key={i} sx={{ height: HOUR_HEIGHT, textAlign: 'center', p: 1 }}>
@@ -49,6 +47,8 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
             </Typography>
           </Box>
         ))}
+        {/* Spare section spacer */}
+        <Box sx={{ minHeight: maxSpareHeight, borderTop: '2px dashed #ccc' }} />
       </Box>
 
       {/* Week Columns */}

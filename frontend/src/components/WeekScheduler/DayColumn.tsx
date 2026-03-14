@@ -12,7 +12,7 @@ interface DayColumnProps {
   spareHeight: number;
 }
 
-const START_HOUR = 6;
+const START_HOUR = 15;
 const END_HOUR = 24;
 const HOUR_HEIGHT = 60; // pixels
 
@@ -50,36 +50,6 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
       <Box sx={{ p: 1, textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#f5f5f5' }}>
         <Typography variant="subtitle2">{format(date, 'EEE')}</Typography>
         <Typography variant="caption">{format(date, 'MMM d')}</Typography>
-      </Box>
-
-      {/* Spare Section */}
-      <Box sx={{ minHeight: spareHeight, borderBottom: '2px dashed #ccc', p: 0.5, backgroundColor: '#fffbe6' }}>
-        <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: '#888' }}>Spare Section</Typography>
-        {spareEvents.map(event => (
-          <Paper 
-            key={event.id}
-            elevation={1}
-            onClick={() => onSelectEvent(event)}
-            sx={{ 
-                p: 0.5, 
-                mb: 0.5, 
-                fontSize: '0.75rem', 
-                display: 'flex', 
-                alignItems: 'center',
-                backgroundColor: event.isCompleted ? '#e8f5e9' : 'white',
-                borderLeft: '4px solid #ff9800'
-            }}
-          >
-            <Checkbox 
-              size="small" 
-              checked={event.isCompleted} 
-              onChange={(e) => onToggleComplete(event.id, e.target.checked)}
-              onClick={(e) => e.stopPropagation()}
-              sx={{ p: 0 }}
-            />
-            <Typography variant="caption" noWrap sx={{ ml: 0.5 }}>{event.title}</Typography>
-          </Paper>
-        ))}
       </Box>
 
       {/* Time Grid Area */}
@@ -139,6 +109,36 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
             </Paper>
           );
         })}
+      </Box>
+
+      {/* Spare Section */}
+      <Box sx={{ minHeight: spareHeight, borderTop: '2px dashed #ccc', p: 0.5, backgroundColor: '#fffbe6' }}>
+        <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: '#888' }}>Spare Section</Typography>
+        {spareEvents.map(event => (
+          <Paper
+            key={event.id}
+            elevation={1}
+            onClick={() => onSelectEvent(event)}
+            sx={{
+                p: 0.5,
+                mb: 0.5,
+                fontSize: '0.75rem',
+                display: 'flex',
+                alignItems: 'center',
+                backgroundColor: event.isCompleted ? '#e8f5e9' : 'white',
+                borderLeft: '4px solid #ff9800'
+            }}
+          >
+            <Checkbox
+              size="small"
+              checked={event.isCompleted}
+              onChange={(e) => onToggleComplete(event.id, e.target.checked)}
+              onClick={(e) => e.stopPropagation()}
+              sx={{ p: 0 }}
+            />
+            <Typography variant="caption" noWrap sx={{ ml: 0.5 }}>{event.title}</Typography>
+          </Paper>
+        ))}
       </Box>
     </Box>
   );
