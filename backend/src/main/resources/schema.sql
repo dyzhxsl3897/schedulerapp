@@ -35,11 +35,3 @@ CREATE TABLE IF NOT EXISTS events (
     PRIMARY KEY (id),
     CONSTRAINT fk_event_user FOREIGN KEY (user_id) REFERENCES users (id)
 ) ENGINE=InnoDB;
-
--- Insert a user with username 'lufei' and password '123' only if the table exists
-INSERT INTO users (id, username, password)
-SELECT UNHEX(REPLACE(UUID(), '-', '')), 'lufei', '123'
-WHERE NOT EXISTS (
-    SELECT 1 FROM information_schema.tables 
-    WHERE table_schema = DATABASE() AND table_name = 'users'
-);
