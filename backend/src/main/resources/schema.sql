@@ -38,4 +38,4 @@ CREATE TABLE IF NOT EXISTS events (
 
 -- Insert a user with username 'lufei' and password '123'
 INSERT INTO users (id, username, password) 
-VALUES (UUID(), 'lufei', '123');
+VALUES (UNHEX(REPLACE(UUID(), '-', '')), 'lufei', '123');
