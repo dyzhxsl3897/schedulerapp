@@ -1,12 +1,14 @@
 import React from 'react';
-import { Box, Typography, Paper, Divider, Chip } from '@mui/material';
+import { Box, Typography, Paper, Divider, Chip, Button } from '@mui/material';
+import DeleteIcon from '@mui/icons-material/Delete';
 import { Activity, ScheduledEvent } from '../types';
 
 interface ActivityDetailsProps {
   item: Activity | ScheduledEvent | null;
+  onDeleteEvent?: (id: string) => void;
 }
 
-const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item }) => {
+const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent }) => {
   if (!item) {
     return (
       <Box sx={{ p: 2, flex: 1, minHeight: 0, overflowY: 'auto' }}>
@@ -44,13 +46,25 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item }) => {
             {item.durationMinutes && (
                 <Typography variant="body2">Duration: {item.durationMinutes} mins</Typography>
             )}
-            <Chip 
-                label={item.isCompleted ? 'Completed' : 'Pending'} 
-                size="small" 
+            <Chip
+                label={item.isCompleted ? 'Completed' : 'Pending'}
+                size="small"
                 variant="outlined"
                 color={item.isCompleted ? 'success' : 'warning'}
                 sx={{ mt: 1 }}
             />
+            {onDeleteEvent && (
+              <Button
+                variant="outlined"
+                color="error"
+                size="small"
+                startIcon={<DeleteIcon />}
+                onClick={() => onDeleteEvent(item.id)}
+                sx={{ mt: 1 }}
+              >
+                Delete Event
+              </Button>
+            )}
           </Box>
         )}
 

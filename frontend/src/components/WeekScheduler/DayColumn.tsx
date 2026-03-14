@@ -1,6 +1,6 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { Box, Typography, Paper, Checkbox, IconButton } from '@mui/material';
+import { Box, Typography, Paper, Checkbox, IconButton, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { ScheduledEvent } from '../../types';
 import { format } from 'date-fns';
@@ -90,8 +90,13 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
           const top = calculateTop(event.startTime!);
           const height = calculateHeight(event.durationMinutes || 60);
           return (
-            <Paper
+            <Tooltip
               key={event.id}
+              title={<>{event.title}<br />{event.startTime?.substring(0, 5)}<br />{event.durationMinutes} min</>}
+              arrow
+              placement="top"
+            >
+            <Paper
               elevation={2}
               onClick={() => onSelectEvent(event)}
               sx={{
@@ -132,6 +137,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 {event.startTime?.substring(0, 5)} ({event.durationMinutes}m)
               </Typography>
             </Paper>
+            </Tooltip>
           );
         })}
       </Box>
@@ -140,8 +146,13 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
       <Box sx={{ minHeight: spareHeight, borderTop: '2px dashed #ccc', p: 0.5, backgroundColor: '#fffbe6' }}>
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: '#888' }}>Spare Section</Typography>
         {spareEvents.map(event => (
-          <Paper
+          <Tooltip
             key={event.id}
+            title={<>{event.title}<br />{event.startTime ? event.startTime.substring(0, 5) : 'No time'}<br />{event.durationMinutes} min</>}
+            arrow
+            placement="top"
+          >
+          <Paper
             elevation={1}
             onClick={() => onSelectEvent(event)}
             sx={{
@@ -179,6 +190,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
               </Typography>
             )}
           </Paper>
+          </Tooltip>
         ))}
       </Box>
     </Box>

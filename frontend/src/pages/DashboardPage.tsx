@@ -147,6 +147,7 @@ const DashboardPage: React.FC = () => {
   const handleDeleteEvent = async (id: string) => {
     try {
       await api.delete(`/events/${id}`);
+      setSelectedItem(prev => prev && 'date' in prev && prev.id === id ? null : prev);
       fetchEvents();
     } catch (err) {
       console.error('Failed to delete event', err);
@@ -202,7 +203,7 @@ const DashboardPage: React.FC = () => {
               />
               
               <Box sx={{ borderTop: '2px solid #eee', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                <ActivityDetails item={selectedItem} />
+                <ActivityDetails item={selectedItem} onDeleteEvent={handleDeleteEvent} />
               </Box>
             </Paper>
           </Grid>
