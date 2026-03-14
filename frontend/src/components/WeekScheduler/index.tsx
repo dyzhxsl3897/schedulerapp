@@ -9,13 +9,14 @@ interface WeekSchedulerProps {
   events: ScheduledEvent[];
   onToggleComplete: (id: string, completed: boolean) => void;
   onSelectEvent: (event: ScheduledEvent) => void;
+  onDeleteEvent: (id: string) => void;
 }
 
 const START_HOUR = 15;
 const END_HOUR = 21;
 const HOUR_HEIGHT = 60;
 
-const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onToggleComplete, onSelectEvent }) => {
+const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onToggleComplete, onSelectEvent, onDeleteEvent }) => {
   const startDate = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
   const days = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
 
@@ -32,7 +33,7 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
       }
     }
     const maxCount = Math.max(0, ...Object.values(countsByDay));
-    return Math.max(60, 20 + maxCount * 30);
+    return Math.max(60, 20 + maxCount * 45);
   }, [events]);
 
   return (
@@ -65,6 +66,7 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
             events={events.filter(e => e.date === day.toISOString().split('T')[0])}
             onToggleComplete={onToggleComplete}
             onSelectEvent={onSelectEvent}
+            onDeleteEvent={onDeleteEvent}
             spareHeight={maxSpareHeight}
           />
         ))}

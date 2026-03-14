@@ -5,6 +5,7 @@ import com.scheduler.app.model.Priority;
 import com.scheduler.app.payload.request.ActivityRequest;
 import com.scheduler.app.payload.response.MessageResponse;
 import com.scheduler.app.repository.ActivityRepository;
+import com.scheduler.app.repository.EventRepository;
 import com.scheduler.app.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -23,6 +25,9 @@ import java.util.UUID;
 public class ActivityController {
     @Autowired
     ActivityRepository activityRepository;
+
+    @Autowired
+    EventRepository eventRepository;
 
     @GetMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -71,6 +76,7 @@ public class ActivityController {
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @Transactional
     public ResponseEntity<?> deleteActivity(@PathVariable("id") UUID id) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
 
@@ -79,6 +85,7 @@ public class ActivityController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Error: You are not authorized to delete this activity."));
             }
 
+            eventRepository.deleteByActivityId(id);
             activityRepository.delete(activity);
             return ResponseEntity.ok(new MessageResponse("Activity deleted successfully!"));
         }).orElse(ResponseEntity.notFound().build());

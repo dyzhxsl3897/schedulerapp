@@ -9,4 +9,6 @@ import java.util.UUID;
 public interface EventRepository extends JpaRepository<Event, UUID> {
     List<Event> findByUserIdAndDateBetween(UUID userId, LocalDate startDate, LocalDate endDate);
     List<Event> findByUserId(UUID userId);
+    List<Event> findByActivityId(UUID activityId);
+    void deleteByActivityId(UUID activityId);
 }

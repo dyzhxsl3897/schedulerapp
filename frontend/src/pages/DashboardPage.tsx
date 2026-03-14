@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { 
-    Box, Grid, Paper, Typography, Button, AppBar, Toolbar, IconButton 
+import {
+    Box, Grid, Paper, Typography, Button, AppBar, Toolbar, IconButton,
+    Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddIcon from '@mui/icons-material/Add';
@@ -29,6 +30,7 @@ const DashboardPage: React.FC = () => {
   const [droppedActivity, setDroppedActivity] = useState<Activity | null>(null);
   const [droppedDate, setDroppedDate] = useState<string | null>(null);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [deleteConfirm, setDeleteConfirm] = useState<{ activity: Activity; affectedEvents: ScheduledEvent[] } | null>(null);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -123,13 +125,31 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const handleDeleteActivity = async (id: string) => {
-    if (!window.confirm('Are you sure you want to delete this activity?')) return;
+  const handleDeleteActivity = (id: string) => {
+    const activity = activities.find(a => a.id === id);
+    if (!activity) return;
+    const affectedEvents = events.filter(e => e.activityId === id);
+    setDeleteConfirm({ activity, affectedEvents });
+  };
+
+  const confirmDeleteActivity = async () => {
+    if (!deleteConfirm) return;
     try {
-      await api.delete(`/activities/${id}`);
+      await api.delete(`/activities/${deleteConfirm.activity.id}`);
       fetchActivities();
+      fetchEvents();
     } catch (err) {
       console.error('Failed to delete activity', err);
+    }
+    setDeleteConfirm(null);
+  };
+
+  const handleDeleteEvent = async (id: string) => {
+    try {
+      await api.delete(`/events/${id}`);
+      fetchEvents();
+    } catch (err) {
+      console.error('Failed to delete event', err);
     }
   };
 
@@ -150,11 +170,12 @@ const DashboardPage: React.FC = () => {
         <Grid container spacing={2} sx={{ p: 2, alignItems: 'flex-start', justifyContent: 'center' }}>
           {/* Left: Scheduler */}
           <Grid size={{ xs: 12, md: 8, lg: 9 }}>
-            <WeekScheduler 
-              currentDate={new Date()} 
+            <WeekScheduler
+              currentDate={new Date()}
               events={events}
               onToggleComplete={handleToggleEventComplete}
               onSelectEvent={setSelectedItem}
+              onDeleteEvent={handleDeleteEvent}
             />
           </Grid>
 
@@ -197,12 +218,45 @@ const DashboardPage: React.FC = () => {
         date={droppedDate}
       />
       
-      <ActivityFormDialog 
+      <ActivityFormDialog
         open={activityFormOpen}
         onClose={() => setActivityFormOpen(false)}
         onSave={handleSaveActivity}
         activity={editingActivity}
       />
+
+      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)}>
+        <DialogTitle>Delete Activity</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete <strong>{deleteConfirm?.activity.title}</strong>?
+          </Typography>
+          {deleteConfirm && deleteConfirm.affectedEvents.length > 0 && (
+            <>
+              <Typography variant="body2" sx={{ mt: 1 }}>
+                The following scheduled events will also be deleted:
+              </Typography>
+              <List dense>
+                {deleteConfirm.affectedEvents.map(e => (
+                  <ListItem key={e.id}>
+                    <ListItemText
+                      primary={`${e.date} — ${e.title}`}
+                      secondary={e.startTime ? `${e.startTime.substring(0, 5)} (${e.durationMinutes}m)` : 'No time set'}
+                    />
+                  </ListItem>
+                ))}
+              </List>
+              <Typography variant="caption" color="textSecondary">
+                Note: Only this week's events are shown above. All events for this activity will be deleted.
+              </Typography>
+            </>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteConfirm(null)}>Cancel</Button>
+          <Button onClick={confirmDeleteActivity} color="error" variant="contained">Delete</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };

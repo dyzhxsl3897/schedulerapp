@@ -1,6 +1,7 @@
 import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
-import { Box, Typography, Paper, Checkbox } from '@mui/material';
+import { Box, Typography, Paper, Checkbox, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { ScheduledEvent } from '../../types';
 import { format } from 'date-fns';
 
@@ -9,6 +10,7 @@ interface DayColumnProps {
   events: ScheduledEvent[];
   onToggleComplete: (id: string, completed: boolean) => void;
   onSelectEvent: (event: ScheduledEvent) => void;
+  onDeleteEvent: (id: string) => void;
   spareHeight: number;
 }
 
@@ -16,7 +18,7 @@ const START_HOUR = 15;
 const END_HOUR = 21;
 const HOUR_HEIGHT = 60; // pixels
 
-const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, spareHeight }) => {
+const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, onDeleteEvent, spareHeight }) => {
   const dateStr = format(date, 'yyyy-MM-dd');
   const { isOver, setNodeRef } = useDroppable({
     id: `day-${dateStr}`,
@@ -108,9 +110,9 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
               }}
             >
               <Box display="flex" alignItems="center">
-                <Checkbox 
-                  size="small" 
-                  checked={event.isCompleted} 
+                <Checkbox
+                  size="small"
+                  checked={event.isCompleted}
                   onChange={(e) => onToggleComplete(event.id, e.target.checked)}
                   onClick={(e) => e.stopPropagation()}
                   sx={{ p: 0 }}
@@ -118,6 +120,13 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 <Typography variant="caption" fontWeight="bold" noWrap sx={{ ml: 0.5 }}>
                   {event.title}
                 </Typography>
+                <IconButton
+                  size="small"
+                  onClick={(e) => { e.stopPropagation(); onDeleteEvent(event.id); }}
+                  sx={{ ml: 'auto', p: 0 }}
+                >
+                  <CloseIcon sx={{ fontSize: 14 }} />
+                </IconButton>
               </Box>
               <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.65rem' }}>
                 {event.startTime?.substring(0, 5)} ({event.durationMinutes}m)
@@ -140,23 +149,35 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 mb: 0.5,
                 fontSize: '0.75rem',
                 display: 'flex',
-                alignItems: 'center',
+                flexDirection: 'column',
                 backgroundColor: event.isCompleted ? '#e8f5e9' : 'white',
                 borderLeft: '4px solid #ff9800'
             }}
           >
-            <Checkbox
-              size="small"
-              checked={event.isCompleted}
-              onChange={(e) => onToggleComplete(event.id, e.target.checked)}
-              onClick={(e) => e.stopPropagation()}
-              sx={{ p: 0 }}
-            />
-            <Typography variant="caption" noWrap sx={{ ml: 0.5 }}>
-              {event.startTime
-                ? `${event.startTime.substring(0, 5)} (${event.durationMinutes}m) - ${event.title}`
-                : event.title}
-            </Typography>
+            <Box display="flex" alignItems="center">
+              <Checkbox
+                size="small"
+                checked={event.isCompleted}
+                onChange={(e) => onToggleComplete(event.id, e.target.checked)}
+                onClick={(e) => e.stopPropagation()}
+                sx={{ p: 0 }}
+              />
+              <Typography variant="caption" fontWeight="bold" noWrap sx={{ ml: 0.5 }}>
+                {event.title}
+              </Typography>
+              <IconButton
+                size="small"
+                onClick={(e) => { e.stopPropagation(); onDeleteEvent(event.id); }}
+                sx={{ ml: 'auto', p: 0 }}
+              >
+                <CloseIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Box>
+            {event.startTime && (
+              <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.65rem' }}>
+                {event.startTime.substring(0, 5)} ({event.durationMinutes}m)
+              </Typography>
+            )}
           </Paper>
         ))}
       </Box>
