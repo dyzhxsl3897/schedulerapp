@@ -53,6 +53,7 @@ button:focus-visible {
 }
 
 @media print {
+  @page { size: landscape; }
   .no-print { display: none !important; }
   body { margin: 0; padding: 0; }
   * { overflow: visible !important; }
