@@ -8,6 +8,7 @@ import AddIcon from '@mui/icons-material/Add';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TodayIcon from '@mui/icons-material/Today';
+import PrintIcon from '@mui/icons-material/Print';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
@@ -201,7 +202,7 @@ const DashboardPage: React.FC = () => {
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <AppBar position="static">
+      <AppBar position="static" className="no-print">
         <Toolbar>
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Weekly Scheduler - Welcome, {user?.username}
@@ -217,13 +218,13 @@ const DashboardPage: React.FC = () => {
           {/* Left: Scheduler */}
           <Grid size={{ xs: 12, md: 8, lg: 9 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 1 }}>
-              <IconButton onClick={() => setCurrentDate(d => subWeeks(d, 1))} size="small">
+              <IconButton onClick={() => setCurrentDate(d => subWeeks(d, 1))} size="small" className="no-print">
                 <ChevronLeftIcon />
               </IconButton>
               <Typography variant="subtitle1" sx={{ minWidth: 180, textAlign: 'center', fontWeight: 'bold' }}>
                 {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} – {format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
               </Typography>
-              <IconButton onClick={() => setCurrentDate(d => addWeeks(d, 1))} size="small">
+              <IconButton onClick={() => setCurrentDate(d => addWeeks(d, 1))} size="small" className="no-print">
                 <ChevronRightIcon />
               </IconButton>
               <Button
@@ -231,9 +232,13 @@ const DashboardPage: React.FC = () => {
                 size="small"
                 startIcon={<TodayIcon />}
                 onClick={() => setCurrentDate(new Date())}
+                className="no-print"
               >
                 Today
               </Button>
+              <IconButton onClick={() => window.print()} size="small" className="no-print" title="Print weekly planner">
+                <PrintIcon />
+              </IconButton>
             </Box>
             <WeekScheduler
               currentDate={currentDate}
@@ -245,7 +250,7 @@ const DashboardPage: React.FC = () => {
           </Grid>
 
           {/* Right: Panels */}
-          <Grid size={{ xs: 12, md: 4, lg: 3 }}>
+          <Grid size={{ xs: 12, md: 4, lg: 3 }} className="no-print">
             <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column' }}>
               <Box sx={{ p: 1, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Typography variant="subtitle1" fontWeight="bold">Backlog</Typography>
