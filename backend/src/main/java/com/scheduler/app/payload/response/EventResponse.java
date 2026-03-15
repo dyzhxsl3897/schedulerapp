@@ -1,5 +1,6 @@
 package com.scheduler.app.payload.response;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.scheduler.app.model.Activity;
 import com.scheduler.app.model.Event;
 import lombok.Data;
@@ -18,6 +19,7 @@ public class EventResponse {
     private LocalDate date;
     private LocalTime startTime;
     private Integer durationMinutes;
+    @JsonProperty("isCompleted")
     private boolean isCompleted;
     private UUID userId;
     private LocalDateTime createdAt;
