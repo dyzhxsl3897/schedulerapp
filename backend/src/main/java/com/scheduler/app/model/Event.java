@@ -27,6 +27,9 @@ public class Event {
     @Column(nullable = false)
     private String title;
 
+    @Column(columnDefinition = "TEXT")
+    private String description;
+
     @Column(nullable = false)
     private LocalDate date;
 
@@ -50,8 +53,9 @@ public class Event {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public Event(String title, LocalDate date, LocalTime startTime, Integer durationMinutes, UUID userId, UUID activityId) {
+    public Event(String title, String description, LocalDate date, LocalTime startTime, Integer durationMinutes, UUID userId, UUID activityId) {
         this.title = title;
+        this.description = description;
         this.date = date;
         this.startTime = startTime;
         this.durationMinutes = durationMinutes;

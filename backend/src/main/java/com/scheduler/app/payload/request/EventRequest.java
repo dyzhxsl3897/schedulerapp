@@ -11,7 +11,9 @@ import java.util.UUID;
 public class EventRequest {
     @NotBlank
     private String title;
-    
+
+    private String description;
+
     private UUID activityId;
 
     @NotNull

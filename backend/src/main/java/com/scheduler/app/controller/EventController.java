@@ -1,8 +1,11 @@
 package com.scheduler.app.controller;
 
+import com.scheduler.app.model.Activity;
 import com.scheduler.app.model.Event;
 import com.scheduler.app.payload.request.EventRequest;
+import com.scheduler.app.payload.response.EventResponse;
 import com.scheduler.app.payload.response.MessageResponse;
+import com.scheduler.app.repository.ActivityRepository;
 import com.scheduler.app.repository.EventRepository;
 import com.scheduler.app.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
@@ -15,8 +18,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -25,31 +29,35 @@ public class EventController {
     @Autowired
     EventRepository eventRepository;
 
+    @Autowired
+    ActivityRepository activityRepository;
+
     @GetMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<Event>> getEvents(
+    public ResponseEntity<List<EventResponse>> getEvents(
             @RequestParam(name = "start", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
             @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
-        
+
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        
+
         List<Event> events;
         if (start != null && end != null) {
             events = eventRepository.findByUserIdAndDateBetween(userDetails.getId(), start, end);
         } else {
             events = eventRepository.findByUserId(userDetails.getId());
         }
-        
-        return ResponseEntity.ok(events);
+
+        return ResponseEntity.ok(toEventResponses(events));
     }
 
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Event> createEvent(@Valid @RequestBody EventRequest eventRequest) {
+    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody EventRequest eventRequest) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        
+
         Event event = new Event(
                 eventRequest.getTitle(),
+                eventRequest.getDescription(),
                 eventRequest.getDate(),
                 eventRequest.getStartTime(),
                 eventRequest.getDurationMinutes(),
@@ -58,7 +66,7 @@ public class EventController {
         );
 
         Event savedEvent = eventRepository.save(event);
-        return new ResponseEntity<>(savedEvent, HttpStatus.CREATED);
+        return new ResponseEntity<>(toEventResponse(savedEvent), HttpStatus.CREATED);
     }
 
     @PutMapping("/{id}")
@@ -72,15 +80,16 @@ public class EventController {
             }
 
             event.setTitle(eventRequest.getTitle());
+            event.setDescription(eventRequest.getDescription());
             event.setDate(eventRequest.getDate());
             event.setStartTime(eventRequest.getStartTime());
             event.setDurationMinutes(eventRequest.getDurationMinutes());
             if (eventRequest.getIsCompleted() != null) {
                 event.setCompleted(eventRequest.getIsCompleted());
             }
-            
+
             eventRepository.save(event);
-            return ResponseEntity.ok(event);
+            return ResponseEntity.ok(toEventResponse(event));
         }).orElse(ResponseEntity.notFound().build());
     }
 
@@ -97,5 +106,29 @@ public class EventController {
             eventRepository.delete(event);
             return ResponseEntity.ok(new MessageResponse("Event deleted successfully!"));
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    private List<EventResponse> toEventResponses(List<Event> events) {
+        Set<UUID> activityIds = events.stream()
+                .map(Event::getActivityId)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        Map<UUID, Activity> activityMap = activityIds.isEmpty()
+                ? Collections.emptyMap()
+                : activityRepository.findAllById(activityIds).stream()
+                    .collect(Collectors.toMap(Activity::getId, Function.identity()));
+
+        return events.stream()
+                .map(event -> EventResponse.fromEventAndActivity(event, activityMap.get(event.getActivityId())))
+                .collect(Collectors.toList());
+    }
+
+    private EventResponse toEventResponse(Event event) {
+        Activity activity = null;
+        if (event.getActivityId() != null) {
+            activity = activityRepository.findById(event.getActivityId()).orElse(null);
+        }
+        return EventResponse.fromEventAndActivity(event, activity);
     }
 }

@@ -21,7 +21,7 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent, 
     );
   }
 
-  const isActivity = 'priority' in item;
+  const isActivity = !('date' in item);
 
   return (
     <Box sx={{ p: 2, flex: 1, minHeight: 0, overflowY: 'auto' }}>
@@ -86,7 +86,7 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent, 
         
         <Typography variant="caption" color="textSecondary">Description:</Typography>
         <Typography variant="body2">
-          {isActivity ? item.description : 'Details for scheduled instance...'}
+          {isActivity ? item.description : (item.description || 'No description')}
         </Typography>
       </Paper>
     </Box>

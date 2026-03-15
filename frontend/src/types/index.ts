@@ -24,6 +24,7 @@ export interface ScheduledEvent {
   id: string;
   activityId?: string;
   title: string;
+  description?: string;
   date: string; // ISO date string YYYY-MM-DD
   startTime?: string; // HH:mm:ss
   durationMinutes?: number;

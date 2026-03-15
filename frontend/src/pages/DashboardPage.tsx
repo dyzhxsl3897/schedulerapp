@@ -108,7 +108,12 @@ const DashboardPage: React.FC = () => {
       if (!event) return;
       
       await api.put(`/events/${id}`, {
-        ...event,
+        title: event.title,
+        description: event.description,
+        activityId: event.activityId,
+        date: event.date,
+        startTime: event.startTime,
+        durationMinutes: event.durationMinutes,
         isCompleted: completed
       });
       fetchEvents();
@@ -125,6 +130,7 @@ const DashboardPage: React.FC = () => {
         await api.post('/activities', data);
       }
       fetchActivities();
+      fetchEvents();
     } catch (err) {
       console.error('Failed to save activity', err);
     }
@@ -169,9 +175,13 @@ const DashboardPage: React.FC = () => {
     try {
       const startTimeFormatted = data.startTime ? `${data.startTime}:00` : null;
       await api.put(`/events/${editingEvent.id}`, {
-        ...editingEvent,
+        title: editingEvent.title,
+        description: editingEvent.description,
+        activityId: editingEvent.activityId,
+        date: editingEvent.date,
         startTime: startTimeFormatted,
-        durationMinutes: data.durationMinutes
+        durationMinutes: data.durationMinutes,
+        isCompleted: editingEvent.isCompleted
       });
       fetchEvents();
       // Update selectedItem if it's the event we just edited

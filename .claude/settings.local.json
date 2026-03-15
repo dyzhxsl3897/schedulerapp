@@ -3,7 +3,8 @@
     "allow": [
       "Bash(ls:*)",
       "Bash(cd:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(which mvn:*)"
     ]
   }
 }
