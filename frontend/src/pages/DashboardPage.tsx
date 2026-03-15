@@ -213,6 +213,14 @@ const DashboardPage: React.FC = () => {
         </Toolbar>
       </AppBar>
 
+      <Typography
+        variant="h5"
+        className="print-only"
+        sx={{ textAlign: 'center', fontWeight: 'bold', pt: 2 }}
+      >
+        {user?.username}'s Weekly Schedule
+      </Typography>
+
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
         <Grid container spacing={2} sx={{ p: 2, alignItems: 'flex-start', justifyContent: 'center' }}>
           {/* Left: Scheduler */}
