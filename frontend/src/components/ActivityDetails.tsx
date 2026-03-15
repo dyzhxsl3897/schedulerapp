@@ -35,7 +35,7 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent, 
               </IconButton>
             )}
             {onDeleteEvent && (
-              <IconButton size="small" color="error" onClick={() => onDeleteEvent(item.id)}>
+              <IconButton size="small" onClick={() => onDeleteEvent(item.id)}>
                 <DeleteIcon fontSize="small" />
               </IconButton>
             )}

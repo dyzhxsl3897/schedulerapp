@@ -116,7 +116,11 @@ const DashboardPage: React.FC = () => {
         durationMinutes: event.durationMinutes,
         isCompleted: completed
       });
-      fetchEvents();
+      await fetchEvents();
+      // Update selectedItem if the toggled event is currently selected
+      if (selectedItem && 'date' in selectedItem && selectedItem.id === id) {
+        setSelectedItem({ ...selectedItem, isCompleted: completed } as ScheduledEvent);
+      }
     } catch (err) {
       console.error('Failed to toggle event', err);
     }

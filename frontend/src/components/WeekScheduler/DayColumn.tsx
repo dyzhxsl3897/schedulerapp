@@ -108,8 +108,8 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 zIndex: 10,
                 p: 0.5,
                 overflow: 'hidden',
-                backgroundColor: event.isCompleted ? '#e8f5e9' : '#e3f2fd',
-                borderLeft: '4px solid #2196f3',
+                backgroundColor: event.isCompleted ? '#e4f2fd' : '#ffffff',
+                borderLeft: event.isCompleted ? '4px solid #2197f3' : '4px solid #ff9601',
                 display: 'flex',
                 flexDirection: 'column'
               }}
@@ -161,8 +161,8 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 fontSize: '0.75rem',
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: event.isCompleted ? '#e8f5e9' : 'white',
-                borderLeft: '4px solid #ff9800'
+                backgroundColor: event.isCompleted ? '#e4f2fd' : '#ffffff',
+                borderLeft: event.isCompleted ? '4px solid #2197f3' : '4px solid #ff9601'
             }}
           >
             <Box display="flex" alignItems="center">
