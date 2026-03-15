@@ -30,6 +30,7 @@ const DashboardPage: React.FC = () => {
   const [droppedActivity, setDroppedActivity] = useState<Activity | null>(null);
   const [droppedDate, setDroppedDate] = useState<string | null>(null);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
+  const [editingEvent, setEditingEvent] = useState<ScheduledEvent | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ activity: Activity; affectedEvents: ScheduledEvent[] } | null>(null);
 
   const sensors = useSensors(
@@ -154,6 +155,32 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleEditEvent = (event: ScheduledEvent) => {
+    setEditingEvent(event);
+    setEventDialogOpen(true);
+  };
+
+  const handleUpdateEvent = async (data: { startTime?: string, durationMinutes?: number }) => {
+    if (!editingEvent) return;
+    try {
+      const startTimeFormatted = data.startTime ? `${data.startTime}:00` : null;
+      await api.put(`/events/${editingEvent.id}`, {
+        ...editingEvent,
+        startTime: startTimeFormatted,
+        durationMinutes: data.durationMinutes
+      });
+      fetchEvents();
+      // Update selectedItem if it's the event we just edited
+      if (selectedItem && 'date' in selectedItem && selectedItem.id === editingEvent.id) {
+        const res = await api.get(`/events?start=${editingEvent.date}&end=${editingEvent.date}`);
+        const updated = res.data.find((e: ScheduledEvent) => e.id === editingEvent.id);
+        if (updated) setSelectedItem(updated);
+      }
+    } catch (err) {
+      console.error('Failed to update event', err);
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static">
@@ -203,7 +230,12 @@ const DashboardPage: React.FC = () => {
               />
               
               <Box sx={{ borderTop: '2px solid #eee', flex: 1, minHeight: 0, overflow: 'hidden' }}>
-                <ActivityDetails item={selectedItem} onDeleteEvent={handleDeleteEvent} />
+                <ActivityDetails
+                  item={selectedItem}
+                  onDeleteEvent={handleDeleteEvent}
+                  onEditEvent={handleEditEvent}
+                  onToggleComplete={handleToggleEventComplete}
+                />
               </Box>
             </Paper>
           </Grid>
@@ -211,12 +243,13 @@ const DashboardPage: React.FC = () => {
       </DndContext>
 
       {/* Dialogs */}
-      <EventDialog 
-        open={eventDialogOpen} 
-        onClose={() => setEventDialogOpen(false)}
-        onSave={handleSaveEvent}
+      <EventDialog
+        open={eventDialogOpen}
+        onClose={() => { setEventDialogOpen(false); setEditingEvent(null); }}
+        onSave={editingEvent ? handleUpdateEvent : handleSaveEvent}
         activity={droppedActivity}
         date={droppedDate}
+        event={editingEvent}
       />
       
       <ActivityFormDialog

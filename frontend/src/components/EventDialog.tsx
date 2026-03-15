@@ -3,7 +3,7 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions, 
     Button, TextField, Box, Typography 
 } from '@mui/material';
-import { Activity } from '../types';
+import { Activity, ScheduledEvent } from '../types';
 
 interface EventDialogProps {
   open: boolean;
@@ -11,18 +11,26 @@ interface EventDialogProps {
   onSave: (data: { startTime?: string, durationMinutes?: number }) => void;
   activity: Activity | null;
   date: string | null;
+  event?: ScheduledEvent | null;
 }
 
-const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activity, date }) => {
+const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activity, date, event }) => {
   const [startTime, setStartTime] = useState('');
   const [duration, setDuration] = useState('60');
 
+  const isEditing = !!event;
+
   useEffect(() => {
     if (open) {
-      setStartTime('');
-      setDuration('60');
+      if (event) {
+        setStartTime(event.startTime ? event.startTime.substring(0, 5) : '');
+        setDuration(event.durationMinutes?.toString() || '60');
+      } else {
+        setStartTime('');
+        setDuration('60');
+      }
     }
-  }, [open]);
+  }, [open, event]);
 
   const handleSave = () => {
     onSave({
@@ -34,12 +42,12 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
 
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>Schedule Activity</DialogTitle>
+      <DialogTitle>{isEditing ? 'Edit Event' : 'Schedule Activity'}</DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 1, minWidth: 300 }}>
-          <Typography variant="subtitle1" gutterBottom>{activity?.title}</Typography>
+          <Typography variant="subtitle1" gutterBottom>{event?.title || activity?.title}</Typography>
           <Typography variant="body2" color="textSecondary" gutterBottom>
-            Date: {date}
+            Date: {event?.date || date}
           </Typography>
           
           <TextField
@@ -66,7 +74,7 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained" color="primary">Schedule</Button>
+        <Button onClick={handleSave} variant="contained" color="primary">{isEditing ? 'Save' : 'Schedule'}</Button>
       </DialogActions>
     </Dialog>
   );

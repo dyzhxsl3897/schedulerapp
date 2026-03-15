@@ -1,14 +1,17 @@
 import React from 'react';
-import { Box, Typography, Paper, Divider, Chip, Button } from '@mui/material';
+import { Box, Typography, Paper, Divider, Chip, IconButton, Checkbox } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Activity, ScheduledEvent } from '../types';
 
 interface ActivityDetailsProps {
   item: Activity | ScheduledEvent | null;
   onDeleteEvent?: (id: string) => void;
+  onEditEvent?: (event: ScheduledEvent) => void;
+  onToggleComplete?: (id: string, completed: boolean) => void;
 }
 
-const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent }) => {
+const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent, onEditEvent, onToggleComplete }) => {
   if (!item) {
     return (
       <Box sx={{ p: 2, flex: 1, minHeight: 0, overflowY: 'auto' }}>
@@ -23,22 +26,36 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent }
   return (
     <Box sx={{ p: 2, flex: 1, minHeight: 0, overflowY: 'auto' }}>
       <Typography variant="h6" gutterBottom>Details</Typography>
-      <Paper elevation={0} variant="outlined" sx={{ p: 2 }}>
+      <Paper elevation={0} variant="outlined" sx={{ p: 2, position: 'relative' }}>
+        {!isActivity && (
+          <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
+            {onEditEvent && (
+              <IconButton size="small" onClick={() => onEditEvent(item as ScheduledEvent)}>
+                <EditIcon fontSize="small" />
+              </IconButton>
+            )}
+            {onDeleteEvent && (
+              <IconButton size="small" color="error" onClick={() => onDeleteEvent(item.id)}>
+                <DeleteIcon fontSize="small" />
+              </IconButton>
+            )}
+          </Box>
+        )}
         <Typography variant="h6">{item.title}</Typography>
-        <Chip 
-          label={isActivity ? 'Activity Template' : 'Scheduled Event'} 
-          size="small" 
-          color={isActivity ? 'primary' : 'secondary'} 
+        <Chip
+          label={isActivity ? 'Activity Template' : 'Scheduled Event'}
+          size="small"
+          color={isActivity ? 'primary' : 'secondary'}
           sx={{ mb: 1 }}
         />
-        
+
         {isActivity && (
           <Box sx={{ mb: 1 }}>
             <Typography variant="caption" color="textSecondary">Priority: </Typography>
             <Typography variant="body2">{item.priority}</Typography>
           </Box>
         )}
-        
+
         {!isActivity && (
           <Box sx={{ mb: 1 }}>
             <Typography variant="caption" color="textSecondary">Scheduled: </Typography>
@@ -46,25 +63,22 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent }
             {item.durationMinutes && (
                 <Typography variant="body2">Duration: {item.durationMinutes} mins</Typography>
             )}
-            <Chip
-                label={item.isCompleted ? 'Completed' : 'Pending'}
-                size="small"
-                variant="outlined"
-                color={item.isCompleted ? 'success' : 'warning'}
-                sx={{ mt: 1 }}
-            />
-            {onDeleteEvent && (
-              <Button
-                variant="outlined"
-                color="error"
-                size="small"
-                startIcon={<DeleteIcon />}
-                onClick={() => onDeleteEvent(item.id)}
-                sx={{ mt: 1 }}
-              >
-                Delete Event
-              </Button>
-            )}
+            <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+              {onToggleComplete && (
+                <Checkbox
+                  size="small"
+                  checked={item.isCompleted}
+                  onChange={() => onToggleComplete(item.id, !item.isCompleted)}
+                  sx={{ p: 0, mr: 0.5 }}
+                />
+              )}
+              <Chip
+                  label={item.isCompleted ? 'Completed' : 'Pending'}
+                  size="small"
+                  variant="outlined"
+                  color={item.isCompleted ? 'info' : 'warning'}
+              />
+            </Box>
           </Box>
         )}
 
