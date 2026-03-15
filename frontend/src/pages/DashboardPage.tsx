@@ -5,6 +5,9 @@ import {
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import AddIcon from '@mui/icons-material/Add';
+import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
+import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import TodayIcon from '@mui/icons-material/Today';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
@@ -14,10 +17,11 @@ import ActivityList from '../components/ActivityList';
 import ActivityDetails from '../components/ActivityDetails';
 import EventDialog from '../components/EventDialog';
 import ActivityFormDialog from '../components/ActivityFormDialog';
-import { format, startOfWeek, endOfWeek } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 
 const DashboardPage: React.FC = () => {
   const { logout, user } = useAuth();
+  const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [activities, setActivities] = useState<Activity[]>([]);
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
   const [selectedItem, setSelectedItem] = useState<Activity | ScheduledEvent | null>(null);
@@ -41,7 +45,7 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     fetchActivities();
     fetchEvents();
-  }, []);
+  }, [currentDate]);
 
   const fetchActivities = async () => {
     try {
@@ -54,8 +58,8 @@ const DashboardPage: React.FC = () => {
 
   const fetchEvents = async () => {
     try {
-      const start = format(startOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
-      const end = format(endOfWeek(new Date(), { weekStartsOn: 1 }), 'yyyy-MM-dd');
+      const start = format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+      const end = format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
       const res = await api.get(`/events?start=${start}&end=${end}`);
       setEvents(res.data);
     } catch (err) {
@@ -198,8 +202,27 @@ const DashboardPage: React.FC = () => {
         <Grid container spacing={2} sx={{ p: 2, alignItems: 'flex-start', justifyContent: 'center' }}>
           {/* Left: Scheduler */}
           <Grid size={{ xs: 12, md: 8, lg: 9 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 1 }}>
+              <IconButton onClick={() => setCurrentDate(d => subWeeks(d, 1))} size="small">
+                <ChevronLeftIcon />
+              </IconButton>
+              <Typography variant="subtitle1" sx={{ minWidth: 180, textAlign: 'center', fontWeight: 'bold' }}>
+                {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} – {format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
+              </Typography>
+              <IconButton onClick={() => setCurrentDate(d => addWeeks(d, 1))} size="small">
+                <ChevronRightIcon />
+              </IconButton>
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<TodayIcon />}
+                onClick={() => setCurrentDate(new Date())}
+              >
+                Today
+              </Button>
+            </Box>
             <WeekScheduler
-              currentDate={new Date()}
+              currentDate={currentDate}
               events={events}
               onToggleComplete={handleToggleEventComplete}
               onSelectEvent={setSelectedItem}
