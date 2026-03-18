@@ -1,5 +1,6 @@
 package com.scheduler.app.payload.request;
 
+import com.scheduler.app.model.Priority;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -24,4 +25,6 @@ public class EventRequest {
     private Integer durationMinutes;
     
     private Boolean isCompleted;
+
+    private Priority priority;
 }

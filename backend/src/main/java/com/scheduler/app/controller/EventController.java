@@ -62,7 +62,8 @@ public class EventController {
                 eventRequest.getStartTime(),
                 eventRequest.getDurationMinutes(),
                 userDetails.getId(),
-                eventRequest.getActivityId()
+                eventRequest.getActivityId(),
+                eventRequest.getPriority()
         );
 
         Event savedEvent = eventRepository.save(event);
@@ -84,6 +85,7 @@ public class EventController {
             event.setDate(eventRequest.getDate());
             event.setStartTime(eventRequest.getStartTime());
             event.setDurationMinutes(eventRequest.getDurationMinutes());
+            event.setPriority(eventRequest.getPriority());
             if (eventRequest.getIsCompleted() != null) {
                 event.setCompleted(eventRequest.getIsCompleted());
             }

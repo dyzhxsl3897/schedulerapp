@@ -42,6 +42,9 @@ public class Event {
     @Column(name = "google_event_id")
     private String googleEventId;
 
+    @Enumerated(EnumType.STRING)
+    private Priority priority;
+
     @Column(name = "is_completed")
     private boolean isCompleted = false;
 
@@ -56,7 +59,7 @@ public class Event {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public Event(String title, String description, LocalDate date, LocalTime startTime, Integer durationMinutes, UUID userId, UUID activityId) {
+    public Event(String title, String description, LocalDate date, LocalTime startTime, Integer durationMinutes, UUID userId, UUID activityId, Priority priority) {
         this.title = title;
         this.description = description;
         this.date = date;
@@ -64,5 +67,6 @@ public class Event {
         this.durationMinutes = durationMinutes;
         this.userId = userId;
         this.activityId = activityId;
+        this.priority = priority;
     }
 }

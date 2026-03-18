@@ -18,6 +18,19 @@ const START_HOUR = 15;
 const END_HOUR = 21;
 const HOUR_HEIGHT = 60; // pixels
 
+function getPriorityColors(priority?: string): { backgroundColor: string; borderLeft: string } {
+  switch (priority) {
+    case 'HIGH':
+      return { backgroundColor: '#fce4ec', borderLeft: '4px solid #e53935' };
+    case 'MEDIUM':
+      return { backgroundColor: '#fff3e0', borderLeft: '4px solid #ff9800' };
+    case 'LOW':
+      return { backgroundColor: '#e8f5e9', borderLeft: '4px solid #4caf50' };
+    default:
+      return { backgroundColor: '#e3f2fd', borderLeft: '4px solid #2196f3' };
+  }
+}
+
 function computeOverlapLayout(events: ScheduledEvent[]): Map<string, { column: number; totalColumns: number }> {
   if (events.length === 0) return new Map();
 
@@ -177,8 +190,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 boxSizing: 'border-box',
                 px: '2px',
                 overflow: 'hidden',
-                backgroundColor: event.isCompleted ? '#e4f2fd' : '#ffffff',
-                borderLeft: event.isCompleted ? '4px solid #2197f3' : '4px solid #ff9601',
+                ...getPriorityColors(event.priority),
                 display: 'flex',
                 flexDirection: 'column'
               }}
@@ -191,7 +203,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                   onClick={(e) => e.stopPropagation()}
                   sx={{ p: 0 }}
                 />
-                <Typography variant="caption" fontWeight="bold" noWrap sx={{ ml: 0.5 }}>
+                <Typography variant="caption" fontWeight="bold" noWrap sx={{ ml: 0.5, textDecoration: event.isCompleted ? 'line-through' : 'none' }}>
                   {event.title}
                 </Typography>
                 <IconButton
@@ -230,8 +242,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 fontSize: '0.75rem',
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: event.isCompleted ? '#e4f2fd' : '#ffffff',
-                borderLeft: event.isCompleted ? '4px solid #2197f3' : '4px solid #ff9601'
+                ...getPriorityColors(event.priority)
             }}
           >
             <Box display="flex" alignItems="center">
@@ -242,7 +253,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 onClick={(e) => e.stopPropagation()}
                 sx={{ p: 0 }}
               />
-              <Typography variant="caption" fontWeight="bold" noWrap sx={{ ml: 0.5 }}>
+              <Typography variant="caption" fontWeight="bold" noWrap sx={{ ml: 0.5, textDecoration: event.isCompleted ? 'line-through' : 'none' }}>
                 {event.title}
               </Typography>
               <IconButton

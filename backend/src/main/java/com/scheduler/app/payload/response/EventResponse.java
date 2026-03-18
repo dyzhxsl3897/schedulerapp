@@ -21,6 +21,7 @@ public class EventResponse {
     private Integer durationMinutes;
     @JsonProperty("isCompleted")
     private boolean isCompleted;
+    private String priority;
     private String googleEventId;
     private UUID userId;
     private LocalDateTime createdAt;
@@ -38,6 +39,13 @@ public class EventResponse {
         response.setUserId(event.getUserId());
         response.setCreatedAt(event.getCreatedAt());
         response.setUpdatedAt(event.getUpdatedAt());
+
+        // Priority: use event's priority if set, else fall back to activity's priority
+        if (event.getPriority() != null) {
+            response.setPriority(event.getPriority().name());
+        } else if (activity != null && activity.getPriority() != null) {
+            response.setPriority(activity.getPriority().name());
+        }
 
         if (activity != null) {
             response.setTitle(activity.getTitle());
