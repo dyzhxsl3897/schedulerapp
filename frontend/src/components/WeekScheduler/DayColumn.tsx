@@ -18,6 +18,69 @@ const START_HOUR = 15;
 const END_HOUR = 21;
 const HOUR_HEIGHT = 60; // pixels
 
+function computeOverlapLayout(events: ScheduledEvent[]): Map<string, { column: number; totalColumns: number }> {
+  if (events.length === 0) return new Map();
+
+  const sorted = [...events].sort((a, b) => {
+    const cmp = a.startTime!.localeCompare(b.startTime!);
+    if (cmp !== 0) return cmp;
+    return (b.durationMinutes || 60) - (a.durationMinutes || 60);
+  });
+
+  const getEnd = (e: ScheduledEvent) => {
+    const [h, m] = e.startTime!.split(':').map(Number);
+    return h * 60 + m + (e.durationMinutes || 60);
+  };
+  const getStart = (e: ScheduledEvent) => {
+    const [h, m] = e.startTime!.split(':').map(Number);
+    return h * 60 + m;
+  };
+
+  const assignments = new Map<string, { column: number; totalColumns: number }>();
+  const columns: number[] = []; // each entry = end time of last event in that column
+
+  for (const event of sorted) {
+    const start = getStart(event);
+    let placed = -1;
+    for (let c = 0; c < columns.length; c++) {
+      if (columns[c] <= start) {
+        placed = c;
+        break;
+      }
+    }
+    if (placed === -1) {
+      placed = columns.length;
+      columns.push(0);
+    }
+    columns[placed] = getEnd(event);
+    assignments.set(event.id, { column: placed, totalColumns: 1 });
+  }
+
+  // Compute totalColumns per overlap cluster using connected components
+  for (let i = 0; i < sorted.length; i++) {
+    const group: number[] = [i];
+    let clusterEnd = getEnd(sorted[i]);
+    for (let j = i + 1; j < sorted.length; j++) {
+      if (getStart(sorted[j]) < clusterEnd) {
+        group.push(j);
+        clusterEnd = Math.max(clusterEnd, getEnd(sorted[j]));
+      }
+    }
+    if (group.length > 1) {
+      const maxCol = Math.max(...group.map(idx => assignments.get(sorted[idx].id)!.column));
+      const total = maxCol + 1;
+      for (const idx of group) {
+        assignments.get(sorted[idx].id)!.totalColumns = Math.max(
+          assignments.get(sorted[idx].id)!.totalColumns,
+          total
+        );
+      }
+    }
+  }
+
+  return assignments;
+}
+
 const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, onDeleteEvent, spareHeight }) => {
   const dateStr = format(date, 'yyyy-MM-dd');
   const { isOver, setNodeRef } = useDroppable({
@@ -30,6 +93,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
     const hour = parseInt(e.startTime.split(':')[0], 10);
     return hour >= START_HOUR && hour < END_HOUR;
   });
+  const overlapLayout = computeOverlapLayout(timedEvents);
   const spareEvents = events.filter(e => {
     if (!e.startTime) return true;
     const hour = parseInt(e.startTime.split(':')[0], 10);
@@ -89,6 +153,9 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
         {timedEvents.map(event => {
           const top = calculateTop(event.startTime!);
           const height = calculateHeight(event.durationMinutes || 60);
+          const layout = overlapLayout.get(event.id) || { column: 0, totalColumns: 1 };
+          const widthPercent = 100 / layout.totalColumns;
+          const leftPercent = layout.column * widthPercent;
           return (
             <Tooltip
               key={event.id}
@@ -102,11 +169,13 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
               sx={{
                 position: 'absolute',
                 top: top,
-                left: 2,
-                right: 2,
+                left: `${leftPercent}%`,
+                width: `${widthPercent}%`,
                 height: height,
                 zIndex: 10,
                 p: 0.5,
+                boxSizing: 'border-box',
+                px: '2px',
                 overflow: 'hidden',
                 backgroundColor: event.isCompleted ? '#e4f2fd' : '#ffffff',
                 borderLeft: event.isCompleted ? '4px solid #2197f3' : '4px solid #ff9601',
