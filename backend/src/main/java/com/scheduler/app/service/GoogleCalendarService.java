@@ -94,8 +94,9 @@ public class GoogleCalendarService {
 
         Calendar calendarService = buildCalendarService(token.getAccessToken());
 
-        DateTime timeMin = new DateTime(start.atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli());
-        DateTime timeMax = new DateTime(end.plusDays(1).atStartOfDay().toInstant(ZoneOffset.UTC).toEpochMilli());
+        ZoneId syncZone = ZoneId.systemDefault();
+        DateTime timeMin = new DateTime(start.atStartOfDay(syncZone).toInstant().toEpochMilli());
+        DateTime timeMax = new DateTime(end.plusDays(1).atStartOfDay(syncZone).toInstant().toEpochMilli());
 
         Events googleEvents = calendarService.events().list("primary")
                 .setTimeMin(timeMin)
@@ -141,7 +142,9 @@ public class GoogleCalendarService {
         if (gEvent.getStart() != null && gEvent.getStart().getDateTime() != null) {
             // Timed event
             Instant startInstant = Instant.ofEpochMilli(gEvent.getStart().getDateTime().getValue());
-            ZonedDateTime startZdt = startInstant.atZone(ZoneId.systemDefault());
+            String tzId = gEvent.getStart().getTimeZone();
+            ZoneId zone = (tzId != null) ? ZoneId.of(tzId) : ZoneId.systemDefault();
+            ZonedDateTime startZdt = startInstant.atZone(zone);
             event.setDate(startZdt.toLocalDate());
             event.setStartTime(startZdt.toLocalTime());
 
