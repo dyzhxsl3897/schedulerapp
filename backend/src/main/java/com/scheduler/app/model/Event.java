@@ -39,6 +39,9 @@ public class Event {
     @Column(name = "duration_minutes")
     private Integer durationMinutes;
 
+    @Column(name = "google_event_id")
+    private String googleEventId;
+
     @Column(name = "is_completed")
     private boolean isCompleted = false;
 

@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import api from '../api/axios';
 
 interface User {
   id: string;
@@ -37,6 +38,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const logout = () => {
+    // Revoke Google token before clearing auth (interceptor needs token from localStorage)
+    api.delete('/google/disconnect').catch(() => { /* best-effort */ });
     setToken(null);
     setUser(null);
     localStorage.removeItem('token');

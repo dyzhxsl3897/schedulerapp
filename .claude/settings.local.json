@@ -8,7 +8,9 @@
       "Bash(find:*)",
       "Bash(./mvnw clean:*)",
       "Bash(cmd.exe /c \"cd C:\\\\\\\\Users\\\\\\\\lufei\\\\\\\\Workspaces\\\\\\\\SchedulerApp\\\\\\\\backend && mvn clean package -DskipTests -q\" 2>&1 | tail -10)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(./mvnw compile:*)",
+      "Bash(docker compose:*)"
     ]
   }
 }

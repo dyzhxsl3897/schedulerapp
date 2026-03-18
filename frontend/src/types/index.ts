@@ -29,6 +29,7 @@ export interface ScheduledEvent {
   startTime?: string; // HH:mm:ss
   durationMinutes?: number;
   isCompleted: boolean;
+  googleEventId?: string;
   userId: string;
   createdAt?: string;
   updatedAt?: string;

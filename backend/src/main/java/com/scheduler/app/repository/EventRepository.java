@@ -11,4 +11,5 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     List<Event> findByUserId(UUID userId);
     List<Event> findByActivityId(UUID activityId);
     void deleteByActivityId(UUID activityId);
+    List<Event> findByUserIdAndGoogleEventIdIn(UUID userId, List<String> googleEventIds);
 }

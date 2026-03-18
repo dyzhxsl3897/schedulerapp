@@ -18,6 +18,7 @@ import ActivityList from '../components/ActivityList';
 import ActivityDetails from '../components/ActivityDetails';
 import EventDialog from '../components/EventDialog';
 import ActivityFormDialog from '../components/ActivityFormDialog';
+import GoogleCalendarButton from '../components/GoogleCalendarButton';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 
 const DashboardPage: React.FC = () => {
@@ -247,6 +248,11 @@ const DashboardPage: React.FC = () => {
               <IconButton onClick={() => window.print()} size="small" className="no-print" title="Print weekly planner">
                 <PrintIcon />
               </IconButton>
+              <GoogleCalendarButton
+                weekStart={format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+                weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+                onSyncComplete={fetchEvents}
+              />
             </Box>
             <WeekScheduler
               currentDate={currentDate}

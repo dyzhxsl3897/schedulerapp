@@ -21,6 +21,7 @@ public class EventResponse {
     private Integer durationMinutes;
     @JsonProperty("isCompleted")
     private boolean isCompleted;
+    private String googleEventId;
     private UUID userId;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -33,6 +34,7 @@ public class EventResponse {
         response.setStartTime(event.getStartTime());
         response.setDurationMinutes(event.getDurationMinutes());
         response.setCompleted(event.isCompleted());
+        response.setGoogleEventId(event.getGoogleEventId());
         response.setUserId(event.getUserId());
         response.setCreatedAt(event.getCreatedAt());
         response.setUpdatedAt(event.getUpdatedAt());
