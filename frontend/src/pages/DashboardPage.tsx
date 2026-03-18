@@ -226,7 +226,7 @@ const DashboardPage: React.FC = () => {
         <Grid container spacing={2} sx={{ p: 2, alignItems: 'flex-start', justifyContent: 'center' }}>
           {/* Left: Scheduler */}
           <Grid size={{ xs: 12, md: 8, lg: 9 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 1 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 1, position: 'relative' }}>
               <IconButton onClick={() => setCurrentDate(d => subWeeks(d, 1))} size="small" className="no-print">
                 <ChevronLeftIcon />
               </IconButton>
@@ -245,14 +245,16 @@ const DashboardPage: React.FC = () => {
               >
                 Today
               </Button>
-              <IconButton onClick={() => window.print()} size="small" className="no-print" title="Print weekly planner">
+              <IconButton onClick={() => window.print()} size="small" className="no-print" title="Print weekly planner" sx={{ position: 'absolute', right: 0 }}>
                 <PrintIcon />
               </IconButton>
-              <GoogleCalendarButton
-                weekStart={format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
-                weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
-                onSyncComplete={fetchEvents}
-              />
+              <span className="no-print">
+                <GoogleCalendarButton
+                  weekStart={format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+                  weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+                  onSyncComplete={fetchEvents}
+                />
+              </span>
             </Box>
             <WeekScheduler
               currentDate={currentDate}
