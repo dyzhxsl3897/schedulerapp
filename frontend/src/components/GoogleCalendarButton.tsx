@@ -28,7 +28,6 @@ const GoogleCalendarButton: React.FC<GoogleCalendarButtonProps> = ({
     const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
     const popupRef = useRef<Window | null>(null);
     const popupCheckInterval = useRef<number | null>(null);
-    const hasAutoSynced = useRef(false);
 
     const checkStatus = useCallback(async () => {
         try {
@@ -44,18 +43,6 @@ const GoogleCalendarButton: React.FC<GoogleCalendarButtonProps> = ({
         checkStatus();
     }, [checkStatus]);
 
-    // Auto-sync on mount when already connected
-    useEffect(() => {
-        if (connected && !hasAutoSynced.current) {
-            hasAutoSynced.current = true;
-            api.post(`/google/sync?start=${weekStart}&end=${weekEnd}`)
-                .then(() => onSyncComplete())
-                .catch(() => { /* silent */ });
-        }
-        if (!connected) {
-            hasAutoSynced.current = false;
-        }
-    }, [connected, weekStart, weekEnd, onSyncComplete]);
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent) => {
