@@ -1,6 +1,7 @@
 package com.scheduler.app.controller;
 
 import com.scheduler.app.model.User;
+import com.scheduler.app.payload.request.ChangePasswordRequest;
 import com.scheduler.app.payload.request.LoginRequest;
 import com.scheduler.app.payload.request.SignupRequest;
 import com.scheduler.app.payload.response.JwtResponse;
@@ -92,5 +93,24 @@ public class AuthController {
         userRepository.save(user);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+    }
+
+    @PostMapping("/change-password")
+    public ResponseEntity<?> changePassword(@Valid @RequestBody ChangePasswordRequest request) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+
+        User user = userRepository.findById(userDetails.getId())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        if (!encoder.matches(request.getCurrentPassword(), user.getPassword())) {
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse("Error: Current password is incorrect!"));
+        }
+
+        user.setPassword(encoder.encode(request.getNewPassword()));
+        userRepository.save(user);
+
+        return ResponseEntity.ok(new MessageResponse("Password changed successfully!"));
     }
 }

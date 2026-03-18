@@ -13,7 +13,9 @@
       "Bash(docker compose:*)",
       "Bash(find frontend/src -type f \\\\\\(-name *.ts -o -name *.tsx \\\\\\))",
       "Bash(npm run:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(mvn compile:*)",
+      "Bash(docker-compose -p scheduler-app run --rm --no-deps backend bash -c \"mvn compile -q\")"
     ]
   }
 }

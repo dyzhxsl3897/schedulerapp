@@ -9,6 +9,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TodayIcon from '@mui/icons-material/Today';
 import PrintIcon from '@mui/icons-material/Print';
+import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
@@ -19,6 +20,7 @@ import ActivityDetails from '../components/ActivityDetails';
 import EventDialog from '../components/EventDialog';
 import ActivityFormDialog from '../components/ActivityFormDialog';
 import GoogleCalendarButton from '../components/GoogleCalendarButton';
+import ChangePasswordDialog from '../components/ChangePasswordDialog';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 
 const DashboardPage: React.FC = () => {
@@ -38,6 +40,7 @@ const DashboardPage: React.FC = () => {
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduledEvent | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ activity: Activity; affectedEvents: ScheduledEvent[] } | null>(null);
+  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -208,6 +211,9 @@ const DashboardPage: React.FC = () => {
           <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
             Weekly Scheduler - Welcome, {user?.username}
           </Typography>
+          <IconButton color="inherit" onClick={() => setChangePasswordOpen(true)} title="Change Password">
+            <VpnKeyIcon />
+          </IconButton>
           <IconButton color="inherit" onClick={logout}>
             <LogoutIcon />
           </IconButton>
@@ -316,6 +322,8 @@ const DashboardPage: React.FC = () => {
         onSave={handleSaveActivity}
         activity={editingActivity}
       />
+
+      <ChangePasswordDialog open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
 
       <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)}>
         <DialogTitle>Delete Activity</DialogTitle>
