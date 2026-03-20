@@ -40,10 +40,8 @@ public class EventResponse {
         response.setCreatedAt(event.getCreatedAt());
         response.setUpdatedAt(event.getUpdatedAt());
 
-        // Priority: use event's priority if set, else fall back to activity's priority
-        if (event.getPriority() != null) {
-            response.setPriority(event.getPriority().name());
-        } else if (activity != null && activity.getPriority() != null) {
+        // Priority: always derived from the linked activity
+        if (activity != null && activity.getPriority() != null) {
             response.setPriority(activity.getPriority().name());
         }
 

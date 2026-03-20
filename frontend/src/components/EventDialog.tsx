@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
     Dialog, DialogTitle, DialogContent, DialogActions,
-    Button, TextField, Box, Typography, FormControl, InputLabel, Select, MenuItem
+    Button, TextField, Box, Typography
 } from '@mui/material';
 import { Activity, ScheduledEvent } from '../types';
 
 interface EventDialogProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: { startTime?: string, durationMinutes?: number, priority?: string }) => void;
+  onSave: (data: { startTime?: string, durationMinutes?: number }) => void;
   activity: Activity | null;
   date: string | null;
   event?: ScheduledEvent | null;
@@ -17,7 +17,6 @@ interface EventDialogProps {
 const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activity, date, event }) => {
   const [startTime, setStartTime] = useState('');
   const [duration, setDuration] = useState('60');
-  const [priority, setPriority] = useState('');
 
   const isEditing = !!event;
 
@@ -26,11 +25,9 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
       if (event) {
         setStartTime(event.startTime ? event.startTime.substring(0, 5) : '');
         setDuration(event.durationMinutes?.toString() || '60');
-        setPriority(event.priority || '');
       } else {
         setStartTime('');
         setDuration('60');
-        setPriority(activity?.priority || '');
       }
     }
   }, [open, event]);
@@ -39,7 +36,6 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
     onSave({
       startTime: startTime || undefined,
       durationMinutes: startTime ? parseInt(duration) : undefined,
-      priority: priority || undefined
     });
     onClose();
   };
@@ -74,20 +70,6 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
             disabled={!startTime}
             sx={{ mt: 2 }}
           />
-
-          <FormControl fullWidth sx={{ mt: 2 }}>
-            <InputLabel>Priority</InputLabel>
-            <Select
-              value={priority}
-              label="Priority"
-              onChange={(e) => setPriority(e.target.value)}
-            >
-              <MenuItem value="">None</MenuItem>
-              <MenuItem value="HIGH">High</MenuItem>
-              <MenuItem value="MEDIUM">Medium</MenuItem>
-              <MenuItem value="LOW">Low</MenuItem>
-            </Select>
-          </FormControl>
         </Box>
       </DialogContent>
       <DialogActions>

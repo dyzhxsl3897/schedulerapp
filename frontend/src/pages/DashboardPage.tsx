@@ -87,7 +87,7 @@ const DashboardPage: React.FC = () => {
     }
   };
 
-  const handleSaveEvent = async (data: { startTime?: string, durationMinutes?: number, priority?: string }) => {
+  const handleSaveEvent = async (data: { startTime?: string, durationMinutes?: number }) => {
     if (!droppedActivity || !droppedDate) return;
 
     try {
@@ -100,7 +100,6 @@ const DashboardPage: React.FC = () => {
         date: droppedDate,
         startTime: startTimeFormatted,
         durationMinutes: data.durationMinutes,
-        priority: data.priority || droppedActivity.priority || null
       });
       fetchEvents();
     } catch (err) {
@@ -121,7 +120,6 @@ const DashboardPage: React.FC = () => {
         startTime: event.startTime,
         durationMinutes: event.durationMinutes,
         isCompleted: completed,
-        priority: event.priority || null
       });
       await fetchEvents();
       // Update selectedItem if the toggled event is currently selected
@@ -181,7 +179,7 @@ const DashboardPage: React.FC = () => {
     setEventDialogOpen(true);
   };
 
-  const handleUpdateEvent = async (data: { startTime?: string, durationMinutes?: number, priority?: string }) => {
+  const handleUpdateEvent = async (data: { startTime?: string, durationMinutes?: number }) => {
     if (!editingEvent) return;
     try {
       const startTimeFormatted = data.startTime ? `${data.startTime}:00` : null;
@@ -193,7 +191,6 @@ const DashboardPage: React.FC = () => {
         startTime: startTimeFormatted,
         durationMinutes: data.durationMinutes,
         isCompleted: editingEvent.isCompleted,
-        priority: data.priority || null
       });
       fetchEvents();
       // Update selectedItem if it's the event we just edited
