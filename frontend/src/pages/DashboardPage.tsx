@@ -272,24 +272,26 @@ const DashboardPage: React.FC = () => {
 
           {/* Right: Panels */}
           <Grid size={{ xs: 12, md: 4, lg: 3 }} className="no-print">
-            <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 112px)' }}>
-              <ActivityList
-                activities={activities}
-                onEdit={(a) => { setEditingActivity(a); setActivityFormOpen(true); }}
-                onDelete={handleDeleteActivity}
-                onSelect={setSelectedItem}
-                onNew={() => { setEditingActivity(null); setActivityFormOpen(true); }}
-              />
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: 'calc(100vh - 112px)' }}>
+              <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: '50%', minHeight: 0 }}>
+                <ActivityList
+                  activities={activities}
+                  onEdit={(a) => { setEditingActivity(a); setActivityFormOpen(true); }}
+                  onDelete={handleDeleteActivity}
+                  onSelect={setSelectedItem}
+                  onNew={() => { setEditingActivity(null); setActivityFormOpen(true); }}
+                />
+              </Paper>
 
-              <Box sx={{ borderTop: '2px solid #eee', height: '50%', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+              <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: '50%', minHeight: 0, overflow: 'hidden' }}>
                 <ActivityDetails
                   item={selectedItem}
                   onDeleteEvent={handleDeleteEvent}
                   onEditEvent={handleEditEvent}
                   onToggleComplete={handleToggleEventComplete}
                 />
-              </Box>
-            </Paper>
+              </Paper>
+            </Box>
           </Grid>
         </Grid>
       </DndContext>

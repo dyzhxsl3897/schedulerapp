@@ -57,7 +57,7 @@ const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onEdit, onDelete,
       >
         <Box display="flex" alignItems="center">
           <Box flexGrow={1}>
-            <Typography variant="body2" fontWeight="bold">{activity.title}</Typography>
+            <Typography variant="body2" fontWeight="bold" fontSize="0.8rem">{activity.title}</Typography>
           </Box>
           <IconButton size="small" onClick={(e) => { e.stopPropagation(); onEdit(activity); }}>
             <EditIcon fontSize="small" />
@@ -81,16 +81,16 @@ interface ActivityListProps {
 
 const ActivityList: React.FC<ActivityListProps> = ({ activities, onEdit, onDelete, onSelect, onNew }) => {
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', height: '50%', minHeight: 0 }}>
+    <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <Box sx={{ px: 1, pt: 1, pb: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Typography variant="h6">Activities</Typography>
+        <Typography variant="subtitle1" fontWeight="bold">Activities</Typography>
         <Button startIcon={<AddIcon />} size="small" variant="outlined" onClick={onNew}>
           New
         </Button>
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', px: 1, pb: 1 }}>
         {activities.length === 0 ? (
-          <Typography variant="body2" color="textSecondary">No activities. Create one!</Typography>
+          <Typography variant="body2" color="textSecondary" fontSize="0.8rem">No activities. Create one!</Typography>
         ) : (
           activities.map(activity => (
             <ActivityItem
