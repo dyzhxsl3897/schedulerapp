@@ -4,7 +4,6 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
-import AddIcon from '@mui/icons-material/Add';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TodayIcon from '@mui/icons-material/Today';
@@ -273,27 +272,16 @@ const DashboardPage: React.FC = () => {
 
           {/* Right: Panels */}
           <Grid size={{ xs: 12, md: 4, lg: 3 }} className="no-print">
-            <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column' }}>
-              <Box sx={{ p: 1, borderBottom: '1px solid #ddd', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography variant="subtitle1" fontWeight="bold">Backlog</Typography>
-                <Button 
-                    startIcon={<AddIcon />} 
-                    size="small" 
-                    variant="outlined"
-                    onClick={() => { setEditingActivity(null); setActivityFormOpen(true); }}
-                >
-                  New
-                </Button>
-              </Box>
-              
-              <ActivityList 
-                activities={activities} 
+            <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 112px)' }}>
+              <ActivityList
+                activities={activities}
                 onEdit={(a) => { setEditingActivity(a); setActivityFormOpen(true); }}
                 onDelete={handleDeleteActivity}
                 onSelect={setSelectedItem}
+                onNew={() => { setEditingActivity(null); setActivityFormOpen(true); }}
               />
-              
-              <Box sx={{ borderTop: '2px solid #eee', flex: 1, minHeight: 0, overflow: 'hidden' }}>
+
+              <Box sx={{ borderTop: '2px solid #eee', height: '50%', minHeight: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
                 <ActivityDetails
                   item={selectedItem}
                   onDeleteEvent={handleDeleteEvent}
