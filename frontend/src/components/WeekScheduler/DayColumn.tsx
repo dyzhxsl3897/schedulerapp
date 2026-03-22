@@ -3,6 +3,7 @@ import { useDroppable } from '@dnd-kit/core';
 import { Box, Typography, Paper, Checkbox, IconButton, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import { ScheduledEvent } from '../../types';
+import { getPriorityColors } from '../../utils/priority';
 import { format } from 'date-fns';
 
 interface DayColumnProps {
@@ -17,19 +18,6 @@ interface DayColumnProps {
 const START_HOUR = 15;
 const END_HOUR = 21;
 const HOUR_HEIGHT = 60; // pixels
-
-function getPriorityColors(priority?: string): { backgroundColor: string; borderLeft: string } {
-  switch (priority) {
-    case 'HIGH':
-      return { backgroundColor: '#fce4ec', borderLeft: '4px solid #e53935' };
-    case 'MEDIUM':
-      return { backgroundColor: '#fff3e0', borderLeft: '4px solid #ff9800' };
-    case 'LOW':
-      return { backgroundColor: '#e8f5e9', borderLeft: '4px solid #4caf50' };
-    default:
-      return { backgroundColor: '#e3f2fd', borderLeft: '4px solid #2196f3' };
-  }
-}
 
 function computeOverlapLayout(events: ScheduledEvent[]): Map<string, { column: number; totalColumns: number }> {
   if (events.length === 0) return new Map();
@@ -190,7 +178,8 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 boxSizing: 'border-box',
                 px: '2px',
                 overflow: 'hidden',
-                ...getPriorityColors(event.priority),
+                backgroundColor: getPriorityColors(event.priority).backgroundColor,
+                borderLeft: `4px solid ${getPriorityColors(event.priority).borderColor}`,
                 display: 'flex',
                 flexDirection: 'column'
               }}
@@ -242,7 +231,8 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 fontSize: '0.75rem',
                 display: 'flex',
                 flexDirection: 'column',
-                ...getPriorityColors(event.priority)
+                backgroundColor: getPriorityColors(event.priority).backgroundColor,
+                borderLeft: `4px solid ${getPriorityColors(event.priority).borderColor}`
             }}
           >
             <Box display="flex" alignItems="center">

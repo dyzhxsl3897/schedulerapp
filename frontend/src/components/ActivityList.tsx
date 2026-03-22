@@ -2,22 +2,10 @@ import React from 'react';
 import { useDraggable } from '@dnd-kit/core';
 import { Paper, Typography, IconButton, Box, Button } from '@mui/material';
 import { Activity } from '../types';
+import { getPriorityColors } from '../utils/priority';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
-
-function getPriorityColors(priority?: string): { backgroundColor: string; borderColor: string } {
-  switch (priority) {
-    case 'HIGH':
-      return { backgroundColor: '#fce4ec', borderColor: '#e53935' };
-    case 'MEDIUM':
-      return { backgroundColor: '#fff3e0', borderColor: '#ff9800' };
-    case 'LOW':
-      return { backgroundColor: '#e8f5e9', borderColor: '#4caf50' };
-    default:
-      return { backgroundColor: '#e3f2fd', borderColor: '#2196f3' };
-  }
-}
 
 interface ActivityItemProps {
   activity: Activity;

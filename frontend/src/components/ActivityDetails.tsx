@@ -3,6 +3,7 @@ import { Box, Typography, Paper, Divider, Chip, IconButton, Checkbox } from '@mu
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { Activity, ScheduledEvent } from '../types';
+import { getPriorityColors } from '../utils/priority';
 
 interface ActivityDetailsProps {
   item: Activity | ScheduledEvent | null;
@@ -22,11 +23,12 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent, 
   }
 
   const isActivity = !('date' in item);
+  const colors = getPriorityColors(item.priority);
 
   return (
     <Box sx={{ p: 2, flex: 1, minHeight: 0, overflowY: 'auto' }}>
       <Typography variant="subtitle1" fontWeight="bold" gutterBottom>Details</Typography>
-      <Paper elevation={0} variant="outlined" sx={{ p: 2, position: 'relative' }}>
+      <Paper elevation={0} variant="outlined" sx={{ p: 2, position: 'relative', backgroundColor: colors.backgroundColor, border: `1px solid ${colors.borderColor}`, borderLeft: `4px solid ${colors.borderColor}` }}>
         {!isActivity && (
           <Box sx={{ position: 'absolute', top: 8, right: 8, display: 'flex', gap: 0.5 }}>
             {onEditEvent && (
@@ -48,13 +50,6 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent, 
           color={isActivity ? 'primary' : 'secondary'}
           sx={{ mb: 1 }}
         />
-
-        {isActivity && (
-          <Box sx={{ mb: 1 }}>
-            <Typography variant="caption" color="textSecondary">Priority: </Typography>
-            <Typography variant="body2" fontSize="0.8rem">{item.priority}</Typography>
-          </Box>
-        )}
 
         {!isActivity && (
           <Box sx={{ mb: 1 }}>
