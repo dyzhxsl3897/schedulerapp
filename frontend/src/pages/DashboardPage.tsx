@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Box, Grid, Paper, Typography, Button, AppBar, Toolbar, IconButton, Chip,
+    Box, Grid, Paper, Typography, Button, AppBar, Toolbar, IconButton,
     Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText
 } from '@mui/material';
-import LogoutIcon from '@mui/icons-material/Logout';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TodayIcon from '@mui/icons-material/Today';
 import PrintIcon from '@mui/icons-material/Print';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
-import VpnKeyIcon from '@mui/icons-material/VpnKey';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import MenuIcon from '@mui/icons-material/Menu';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
@@ -21,11 +19,12 @@ import ActivityDetails from '../components/ActivityDetails';
 import EventDialog from '../components/EventDialog';
 import ActivityFormDialog from '../components/ActivityFormDialog';
 import GoogleCalendarButton from '../components/GoogleCalendarButton';
-import ChangePasswordDialog from '../components/ChangePasswordDialog';
+import NavigationDrawer from '../components/NavigationDrawer';
+import AppBarUserSection from '../components/AppBarUserSection';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 
 const DashboardPage: React.FC = () => {
-  const { logout, user } = useAuth();
+  const { user } = useAuth();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [activities, setActivities] = useState<Activity[]>([]);
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
@@ -41,7 +40,7 @@ const DashboardPage: React.FC = () => {
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduledEvent | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ activity: Activity; affectedEvents: ScheduledEvent[] } | null>(null);
-  const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
   const [clearWeekConfirmOpen, setClearWeekConfirmOpen] = useState(false);
 
   const sensors = useSensors(
@@ -224,6 +223,9 @@ const DashboardPage: React.FC = () => {
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static" className="no-print">
         <Toolbar sx={{ gap: 0.5 }}>
+          <IconButton color="inherit" edge="start" onClick={() => setDrawerOpen(true)} sx={{ mr: 1 }}>
+            <MenuIcon />
+          </IconButton>
           <Typography variant="h6" component="div" sx={{ mr: 2 }}>
             Weekly Scheduler
           </Typography>
@@ -256,18 +258,7 @@ const DashboardPage: React.FC = () => {
             <PrintIcon />
           </IconButton>
           <Box sx={{ flexGrow: 1 }} />
-          <Chip
-            icon={<AccountCircleIcon />}
-            label={user?.username}
-            variant="outlined"
-            sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)', '& .MuiChip-icon': { color: 'white' } }}
-          />
-          <IconButton color="inherit" onClick={() => setChangePasswordOpen(true)} title="Change Password">
-            <VpnKeyIcon />
-          </IconButton>
-          <IconButton color="inherit" onClick={logout}>
-            <LogoutIcon />
-          </IconButton>
+          <AppBarUserSection />
         </Toolbar>
       </AppBar>
 
@@ -358,7 +349,7 @@ const DashboardPage: React.FC = () => {
         activity={editingActivity}
       />
 
-      <ChangePasswordDialog open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
+      <NavigationDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
       <Dialog open={clearWeekConfirmOpen} onClose={() => setClearWeekConfirmOpen(false)}>
         <DialogTitle>Clear Week</DialogTitle>

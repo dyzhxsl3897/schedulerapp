@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
+import YearlyGoalsPage from './pages/YearlyGoalsPage';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 
 const theme = createTheme({
@@ -24,15 +25,24 @@ const AppContent: React.FC = () => {
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
-        <Route 
-          path="/" 
+        <Route
+          path="/planner"
           element={
             <ProtectedRoute>
               <DashboardPage />
             </ProtectedRoute>
-          } 
+          }
         />
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route
+          path="/goals"
+          element={
+            <ProtectedRoute>
+              <YearlyGoalsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/" element={<Navigate to="/planner" />} />
+        <Route path="*" element={<Navigate to="/planner" />} />
       </Routes>
     </Router>
   );
