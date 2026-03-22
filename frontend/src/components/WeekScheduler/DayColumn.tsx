@@ -224,7 +224,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
       </Box>
 
       {/* Spare Section */}
-      <Box sx={{ minHeight: spareHeight, borderTop: '2px dashed #ccc', p: 0.5, backgroundColor: '#fffbe6' }}>
+      <Box sx={{ minHeight: spareHeight, borderTop: '2px dashed #ccc', p: 0.5 }}>
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: '#888' }}>Spare Section</Typography>
         {spareEvents.map(event => (
           <Tooltip
