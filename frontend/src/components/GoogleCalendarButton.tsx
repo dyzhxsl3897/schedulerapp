@@ -132,30 +132,31 @@ const GoogleCalendarButton: React.FC<GoogleCalendarButtonProps> = ({
         <>
             {!connected ? (
                 <Button
-                    variant="outlined"
+                    color="inherit"
                     size="small"
                     startIcon={<LinkIcon />}
                     onClick={handleConnect}
                 >
-                    Connect Google Calendar
+                    Connect Google
                 </Button>
             ) : (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <Button
-                        variant="outlined"
+                        color="inherit"
                         size="small"
-                        startIcon={loading ? <CircularProgress size={16} /> : <SyncIcon />}
+                        startIcon={loading ? <CircularProgress size={16} color="inherit" /> : <SyncIcon />}
                         onClick={handleSync}
                         disabled={loading}
                     >
                         Sync
                     </Button>
                     <Button
+                        color="inherit"
                         size="small"
                         onClick={(e) => setAnchorEl(e.currentTarget)}
                         sx={{ minWidth: 'auto', px: 1 }}
                     >
-                        <Typography variant="caption" noWrap sx={{ maxWidth: 120 }}>
+                        <Typography variant="caption" noWrap sx={{ maxWidth: 120, color: 'inherit' }}>
                             {email || 'Connected'}
                         </Typography>
                     </Button>

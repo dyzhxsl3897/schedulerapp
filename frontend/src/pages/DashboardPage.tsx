@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-    Box, Grid, Paper, Typography, Button, AppBar, Toolbar, IconButton,
+    Box, Grid, Paper, Typography, Button, AppBar, Toolbar, IconButton, Chip,
     Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
@@ -9,6 +9,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TodayIcon from '@mui/icons-material/Today';
 import PrintIcon from '@mui/icons-material/Print';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
+import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
@@ -206,10 +207,42 @@ const DashboardPage: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static" className="no-print">
-        <Toolbar>
-          <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
-            Weekly Scheduler - Welcome, {user?.username}
+        <Toolbar sx={{ gap: 0.5 }}>
+          <Typography variant="h6" component="div" sx={{ mr: 2 }}>
+            Weekly Scheduler
           </Typography>
+          <IconButton color="inherit" onClick={() => setCurrentDate(d => subWeeks(d, 1))} size="small">
+            <ChevronLeftIcon />
+          </IconButton>
+          <Typography variant="subtitle1" sx={{ minWidth: 180, textAlign: 'center', fontWeight: 'bold', color: 'inherit' }}>
+            {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} – {format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
+          </Typography>
+          <IconButton color="inherit" onClick={() => setCurrentDate(d => addWeeks(d, 1))} size="small">
+            <ChevronRightIcon />
+          </IconButton>
+          <Button
+            color="inherit"
+            size="small"
+            startIcon={<TodayIcon />}
+            onClick={() => setCurrentDate(new Date())}
+          >
+            Today
+          </Button>
+          <GoogleCalendarButton
+            weekStart={format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+            weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+            onSyncComplete={fetchEvents}
+          />
+          <IconButton color="inherit" onClick={() => window.print()} size="small" title="Print weekly planner">
+            <PrintIcon />
+          </IconButton>
+          <Box sx={{ flexGrow: 1 }} />
+          <Chip
+            icon={<AccountCircleIcon />}
+            label={user?.username}
+            variant="outlined"
+            sx={{ color: 'white', borderColor: 'rgba(255,255,255,0.5)', '& .MuiChip-icon': { color: 'white' } }}
+          />
           <IconButton color="inherit" onClick={() => setChangePasswordOpen(true)} title="Change Password">
             <VpnKeyIcon />
           </IconButton>
@@ -231,36 +264,6 @@ const DashboardPage: React.FC = () => {
         <Grid container spacing={2} sx={{ p: 2, alignItems: 'flex-start', justifyContent: 'center' }}>
           {/* Left: Scheduler */}
           <Grid size={{ xs: 12, md: 8, lg: 9 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', mb: 1, gap: 1, position: 'relative' }}>
-              <IconButton onClick={() => setCurrentDate(d => subWeeks(d, 1))} size="small" className="no-print">
-                <ChevronLeftIcon />
-              </IconButton>
-              <Typography variant="subtitle1" sx={{ minWidth: 180, textAlign: 'center', fontWeight: 'bold' }}>
-                {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} – {format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
-              </Typography>
-              <IconButton onClick={() => setCurrentDate(d => addWeeks(d, 1))} size="small" className="no-print">
-                <ChevronRightIcon />
-              </IconButton>
-              <Button
-                variant="outlined"
-                size="small"
-                startIcon={<TodayIcon />}
-                onClick={() => setCurrentDate(new Date())}
-                className="no-print"
-              >
-                Today
-              </Button>
-              <IconButton onClick={() => window.print()} size="small" className="no-print" title="Print weekly planner" sx={{ position: 'absolute', right: 0 }}>
-                <PrintIcon />
-              </IconButton>
-              <span className="no-print">
-                <GoogleCalendarButton
-                  weekStart={format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
-                  weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
-                  onSyncComplete={fetchEvents}
-                />
-              </span>
-            </Box>
             <WeekScheduler
               currentDate={currentDate}
               events={events}
@@ -272,7 +275,7 @@ const DashboardPage: React.FC = () => {
 
           {/* Right: Panels */}
           <Grid size={{ xs: 12, md: 4, lg: 3 }} className="no-print">
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: 'calc(100vh - 112px)' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: 'calc(100vh - 88px)' }}>
               <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: '50%', minHeight: 0 }}>
                 <ActivityList
                   activities={activities}
