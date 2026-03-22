@@ -33,7 +33,7 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
       }
     }
     const maxCount = Math.max(0, ...Object.values(countsByDay));
-    return Math.max(60, 20 + maxCount * 45);
+    return Math.max(60, 28 + maxCount * 32);
   }, [events]);
 
   return (
