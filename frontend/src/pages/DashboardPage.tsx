@@ -8,6 +8,7 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TodayIcon from '@mui/icons-material/Today';
 import PrintIcon from '@mui/icons-material/Print';
+import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
@@ -41,6 +42,7 @@ const DashboardPage: React.FC = () => {
   const [editingEvent, setEditingEvent] = useState<ScheduledEvent | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<{ activity: Activity; affectedEvents: ScheduledEvent[] } | null>(null);
   const [changePasswordOpen, setChangePasswordOpen] = useState(false);
+  const [clearWeekConfirmOpen, setClearWeekConfirmOpen] = useState(false);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -174,6 +176,20 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleClearWeek = async () => {
+    try {
+      const start = format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+      const end = format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
+      await api.delete(`/events?start=${start}&end=${end}`);
+      setSelectedItem(prev => prev && 'date' in prev ? null : prev);
+      fetchEvents();
+    } catch (err) {
+      console.error('Failed to clear week events', err);
+    } finally {
+      setClearWeekConfirmOpen(false);
+    }
+  };
+
   const handleEditEvent = (event: ScheduledEvent) => {
     setEditingEvent(event);
     setEventDialogOpen(true);
@@ -233,6 +249,9 @@ const DashboardPage: React.FC = () => {
             weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
             onSyncComplete={fetchEvents}
           />
+          <IconButton color="inherit" onClick={() => setClearWeekConfirmOpen(true)} size="small" title="Clear all events this week">
+            <DeleteSweepIcon />
+          </IconButton>
           <IconButton color="inherit" onClick={() => window.print()} size="small" title="Print weekly planner">
             <PrintIcon />
           </IconButton>
@@ -340,6 +359,23 @@ const DashboardPage: React.FC = () => {
       />
 
       <ChangePasswordDialog open={changePasswordOpen} onClose={() => setChangePasswordOpen(false)} />
+
+      <Dialog open={clearWeekConfirmOpen} onClose={() => setClearWeekConfirmOpen(false)}>
+        <DialogTitle>Clear Week</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete all events for the week of{' '}
+            <strong>
+              {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} –{' '}
+              {format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
+            </strong>?
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setClearWeekConfirmOpen(false)}>Cancel</Button>
+          <Button onClick={handleClearWeek} color="error" variant="contained">Clear</Button>
+        </DialogActions>
+      </Dialog>
 
       <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)}>
         <DialogTitle>Delete Activity</DialogTitle>

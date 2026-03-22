@@ -2,6 +2,7 @@ package com.scheduler.app.repository;
 
 import com.scheduler.app.model.Event;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -12,4 +13,6 @@ public interface EventRepository extends JpaRepository<Event, UUID> {
     List<Event> findByActivityId(UUID activityId);
     void deleteByActivityId(UUID activityId);
     List<Event> findByUserIdAndGoogleEventIdIn(UUID userId, List<String> googleEventIds);
+    @Transactional
+    void deleteByUserIdAndDateBetween(UUID userId, LocalDate startDate, LocalDate endDate);
 }

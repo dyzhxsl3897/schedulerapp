@@ -93,6 +93,16 @@ public class EventController {
         }).orElse(ResponseEntity.notFound().build());
     }
 
+    @DeleteMapping
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    public ResponseEntity<?> deleteEventsByDateRange(
+            @RequestParam(name = "start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
+            @RequestParam(name = "end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        eventRepository.deleteByUserIdAndDateBetween(userDetails.getId(), start, end);
+        return ResponseEntity.ok(new MessageResponse("Events deleted successfully!"));
+    }
+
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> deleteEvent(@PathVariable("id") UUID id) {
