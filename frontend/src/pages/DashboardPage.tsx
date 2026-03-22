@@ -299,6 +299,29 @@ const DashboardPage: React.FC = () => {
         </Grid>
       </DndContext>
 
+      {/* Print-only: Activity Description (second page) */}
+      <Box className="print-only print-descriptions">
+        <Typography variant="h5" sx={{ fontWeight: 'bold', mb: 2, textAlign: 'center' }}>
+          Activity Description
+        </Typography>
+        <Box className="print-descriptions-list">
+          <ul style={{ listStyleType: 'disc', paddingLeft: '24px', margin: 0 }}>
+            {activities.map((activity) => (
+              <li key={activity.id} style={{ marginBottom: '12px', breakInside: 'avoid' }}>
+                <Typography variant="subtitle1" sx={{ fontWeight: 'bold', lineHeight: 1.3 }}>
+                  {activity.title}
+                </Typography>
+                {activity.description && (
+                  <Typography variant="body2" sx={{ color: 'text.secondary', ml: 1 }}>
+                    {activity.description}
+                  </Typography>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Box>
+      </Box>
+
       {/* Dialogs */}
       <EventDialog
         open={eventDialogOpen}

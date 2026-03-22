@@ -60,6 +60,8 @@ button:focus-visible {
   .print-only { display: block !important; }
   body { margin: 0; padding: 0; }
   * { overflow: visible !important; }
+  .print-descriptions { page-break-before: always; }
+  .print-descriptions-list { column-count: 2; column-gap: 32px; }
 }
 
 @media (prefers-color-scheme: light) {
