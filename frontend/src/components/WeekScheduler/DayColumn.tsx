@@ -13,6 +13,7 @@ interface DayColumnProps {
   onSelectEvent: (event: ScheduledEvent) => void;
   onDeleteEvent: (id: string) => void;
   spareHeight: number;
+  selectedActivityId?: string;
 }
 
 const START_HOUR = 15;
@@ -82,7 +83,7 @@ function computeOverlapLayout(events: ScheduledEvent[]): Map<string, { column: n
   return assignments;
 }
 
-const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, onDeleteEvent, spareHeight }) => {
+const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, onDeleteEvent, spareHeight, selectedActivityId }) => {
   const dateStr = format(date, 'yyyy-MM-dd');
   const { isOver, setNodeRef } = useDroppable({
     id: `day-${dateStr}`,
@@ -181,7 +182,12 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 backgroundColor: getPriorityColors(event.priority).backgroundColor,
                 borderLeft: `4px solid ${getPriorityColors(event.priority).borderColor}`,
                 display: 'flex',
-                flexDirection: 'column'
+                flexDirection: 'column',
+                ...(selectedActivityId && event.activityId === selectedActivityId && {
+                  outline: '2px solid #1976d2',
+                  outlineOffset: '-2px',
+                  boxShadow: '0 0 8px rgba(25, 118, 210, 0.4)',
+                }),
               }}
             >
               <Box display="flex" alignItems="center">
@@ -232,7 +238,12 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 display: 'flex',
                 flexDirection: 'column',
                 backgroundColor: getPriorityColors(event.priority).backgroundColor,
-                borderLeft: `4px solid ${getPriorityColors(event.priority).borderColor}`
+                borderLeft: `4px solid ${getPriorityColors(event.priority).borderColor}`,
+                ...(selectedActivityId && event.activityId === selectedActivityId && {
+                  outline: '2px solid #1976d2',
+                  outlineOffset: '-2px',
+                  boxShadow: '0 0 8px rgba(25, 118, 210, 0.4)',
+                }),
             }}
           >
             <Box display="flex" alignItems="center">
