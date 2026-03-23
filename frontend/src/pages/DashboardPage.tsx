@@ -324,7 +324,7 @@ const DashboardPage: React.FC = () => {
                   {activity.title}
                 </Typography>
                 {activity.description && (
-                  <Typography variant="body2" sx={{ color: 'text.secondary', ml: 1 }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', ml: 1, whiteSpace: 'pre-line' }}>
                     {activity.description}
                   </Typography>
                 )}

@@ -80,7 +80,7 @@ const ActivityDetails: React.FC<ActivityDetailsProps> = ({ item, onDeleteEvent, 
         <Divider sx={{ my: 1 }} />
         
         <Typography variant="caption" color="textSecondary">Description:</Typography>
-        <Typography variant="body2" fontSize="0.8rem">
+        <Typography variant="body2" fontSize="0.8rem" sx={{ whiteSpace: 'pre-line' }}>
           {isActivity ? item.description : (item.description || 'No description')}
         </Typography>
       </Paper>
