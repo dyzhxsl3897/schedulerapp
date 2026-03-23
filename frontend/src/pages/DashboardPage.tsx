@@ -299,7 +299,7 @@ const DashboardPage: React.FC = () => {
               onToggleComplete={handleToggleEventComplete}
               onSelectEvent={setSelectedItem}
               onDeleteEvent={handleDeleteEvent}
-              selectedActivityId={selectedItem && !('date' in selectedItem) ? selectedItem.id : undefined}
+              selectedActivityId={selectedItem ? ('date' in selectedItem ? (selectedItem as ScheduledEvent).activityId : selectedItem.id) : undefined}
             />
           </Grid>
 
