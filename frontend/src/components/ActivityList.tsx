@@ -76,10 +76,10 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, onEdit, onDelet
         <Typography variant="subtitle1" fontWeight="bold">Activities</Typography>
         <Box sx={{ display: 'flex', gap: 0.5 }}>
           <Button startIcon={<AddIcon />} size="small" variant="outlined" onClick={onNew}>
-            New Activity
+            Activity
           </Button>
           <Button startIcon={<EventIcon />} size="small" variant="outlined" onClick={onNewEvent}>
-            New Event
+            Event
           </Button>
         </Box>
       </Box>
