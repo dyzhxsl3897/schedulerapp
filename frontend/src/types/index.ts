@@ -20,6 +20,40 @@ export interface Activity {
   updatedAt: string;
 }
 
+export enum StrategyStatus {
+  NOT_STARTED = 'NOT_STARTED',
+  IN_PROGRESS = 'IN_PROGRESS',
+  ACHIEVED = 'ACHIEVED',
+  NOT_ACHIEVED = 'NOT_ACHIEVED',
+}
+
+export interface Objective {
+  id: string;
+  title: string;
+  description: string;
+  academicYear: number;
+  sortOrder: number;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface GoalEntry {
+  id: string;
+  objectiveId: string;
+  goal: string;
+  strategy: string;
+  measure: string;
+  endDate: string;
+  importance: number;
+  result: string;
+  status: StrategyStatus;
+  sortOrder: number;
+  userId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface ScheduledEvent {
   id: string;
   activityId?: string;

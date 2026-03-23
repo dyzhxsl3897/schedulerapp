@@ -62,6 +62,21 @@ button:focus-visible {
   * { overflow: visible !important; }
   .print-descriptions { page-break-before: always; }
   .print-descriptions-list { column-count: 2; column-gap: 32px; }
+
+  /* Yearly Goals print styles */
+  .goals-print-table { width: 100%; border-collapse: collapse; }
+  .goals-print-table th,
+  .goals-print-table td {
+    border: 1px solid #000 !important;
+    padding: 4px 8px !important;
+    font-size: 10pt;
+    color: #000 !important;
+  }
+  .MuiAccordion-root { box-shadow: none !important; }
+  .MuiAccordionSummary-expandIconWrapper { display: none !important; }
+  .MuiAccordionDetails-root { padding: 0 8px !important; }
+  .MuiAccordion-root::before { display: none !important; }
+  .MuiAccordion-root.Mui-expanded { margin: 8px 0 !important; }
 }
 
 @media (prefers-color-scheme: light) {
