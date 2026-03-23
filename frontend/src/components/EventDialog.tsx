@@ -8,7 +8,7 @@ import { Activity, ScheduledEvent } from '../types';
 interface EventDialogProps {
   open: boolean;
   onClose: () => void;
-  onSave: (data: { startTime?: string, durationMinutes?: number }) => void;
+  onSave: (data: { title?: string, description?: string, date?: string, startTime?: string, durationMinutes?: number }) => void;
   activity: Activity | null;
   date: string | null;
   event?: ScheduledEvent | null;
@@ -17,8 +17,12 @@ interface EventDialogProps {
 const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activity, date, event }) => {
   const [startTime, setStartTime] = useState('');
   const [duration, setDuration] = useState('60');
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [eventDate, setEventDate] = useState('');
 
   const isEditing = !!event;
+  const isStandalone = !activity && !event;
 
   useEffect(() => {
     if (open) {
@@ -29,26 +33,75 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
         setStartTime('');
         setDuration('60');
       }
+      setTitle('');
+      setDescription('');
+      setEventDate('');
     }
   }, [open, event]);
 
   const handleSave = () => {
-    onSave({
-      startTime: startTime || undefined,
-      durationMinutes: startTime ? parseInt(duration) : undefined,
-    });
+    if (isStandalone) {
+      onSave({
+        title: title,
+        description: description || undefined,
+        date: eventDate,
+        startTime: startTime || undefined,
+        durationMinutes: startTime ? parseInt(duration) : undefined,
+      });
+    } else {
+      onSave({
+        startTime: startTime || undefined,
+        durationMinutes: startTime ? parseInt(duration) : undefined,
+      });
+    }
     onClose();
   };
 
+  const canSave = isStandalone ? (title.trim() && eventDate) : true;
+
   return (
     <Dialog open={open} onClose={onClose}>
-      <DialogTitle>{isEditing ? 'Edit Event' : 'Schedule Activity'}</DialogTitle>
+      <DialogTitle>{isEditing ? 'Edit Event' : isStandalone ? 'New Event' : 'Schedule Activity'}</DialogTitle>
       <DialogContent>
         <Box sx={{ mt: 1, minWidth: 300 }}>
-          <Typography variant="subtitle1" gutterBottom>{event?.title || activity?.title}</Typography>
-          <Typography variant="body2" color="textSecondary" gutterBottom>
-            Date: {event?.date || date}
-          </Typography>
+          {isStandalone ? (
+            <>
+              <TextField
+                fullWidth
+                label="Title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+                sx={{ mt: 1 }}
+              />
+              <TextField
+                fullWidth
+                label="Description"
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                multiline
+                rows={2}
+                sx={{ mt: 2 }}
+              />
+              <TextField
+                fullWidth
+                label="Date"
+                type="date"
+                value={eventDate}
+                onChange={(e) => setEventDate(e.target.value)}
+                InputLabelProps={{ shrink: true }}
+                required
+                sx={{ mt: 2 }}
+              />
+            </>
+          ) : (
+            <>
+              <Typography variant="subtitle1" gutterBottom>{event?.title || activity?.title}</Typography>
+              <Typography variant="body2" color="textSecondary" gutterBottom>
+                Date: {event?.date || date}
+              </Typography>
+            </>
+          )}
           
           <TextField
             fullWidth
@@ -74,7 +127,7 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={handleSave} variant="contained" color="primary">{isEditing ? 'Save' : 'Schedule'}</Button>
+        <Button onClick={handleSave} variant="contained" color="primary" disabled={!canSave}>{isEditing ? 'Save' : isStandalone ? 'Create' : 'Schedule'}</Button>
       </DialogActions>
     </Dialog>
   );

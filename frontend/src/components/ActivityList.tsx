@@ -6,6 +6,7 @@ import { getPriorityColors } from '../utils/priority';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
+import EventIcon from '@mui/icons-material/Event';
 
 interface ActivityItemProps {
   activity: Activity;
@@ -65,16 +66,22 @@ interface ActivityListProps {
   onDelete: (id: string) => void;
   onSelect: (activity: Activity) => void;
   onNew: () => void;
+  onNewEvent: () => void;
 }
 
-const ActivityList: React.FC<ActivityListProps> = ({ activities, onEdit, onDelete, onSelect, onNew }) => {
+const ActivityList: React.FC<ActivityListProps> = ({ activities, onEdit, onDelete, onSelect, onNew, onNewEvent }) => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0 }}>
       <Box sx={{ px: 1, pt: 1, pb: 0.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Typography variant="subtitle1" fontWeight="bold">Activities</Typography>
-        <Button startIcon={<AddIcon />} size="small" variant="outlined" onClick={onNew}>
-          New
-        </Button>
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          <Button startIcon={<AddIcon />} size="small" variant="outlined" onClick={onNew}>
+            New Activity
+          </Button>
+          <Button startIcon={<EventIcon />} size="small" variant="outlined" onClick={onNewEvent}>
+            New Event
+          </Button>
+        </Box>
       </Box>
       <Box sx={{ flex: 1, minHeight: 0, overflowY: 'auto', px: 1, pb: 1 }}>
         {activities.length === 0 ? (

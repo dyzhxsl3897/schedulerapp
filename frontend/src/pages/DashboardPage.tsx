@@ -40,6 +40,7 @@ const DashboardPage: React.FC = () => {
   const [droppedDate, setDroppedDate] = useState<string | null>(null);
   const [editingActivity, setEditingActivity] = useState<Activity | null>(null);
   const [editingEvent, setEditingEvent] = useState<ScheduledEvent | null>(null);
+  const [newEventDialogOpen, setNewEventDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<{ activity: Activity; affectedEvents: ScheduledEvent[] } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [clearWeekConfirmOpen, setClearWeekConfirmOpen] = useState(false);
@@ -220,6 +221,23 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  const handleSaveNewEvent = async (data: { title?: string, description?: string, date?: string, startTime?: string, durationMinutes?: number }) => {
+    if (!data.title || !data.date) return;
+    try {
+      const startTimeFormatted = data.startTime ? `${data.startTime}:00` : null;
+      await api.post('/events', {
+        title: data.title,
+        description: data.description,
+        date: data.date,
+        startTime: startTimeFormatted,
+        durationMinutes: data.durationMinutes,
+      });
+      fetchEvents();
+    } catch (err) {
+      console.error('Failed to create event', err);
+    }
+  };
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static" className="no-print">
@@ -295,6 +313,7 @@ const DashboardPage: React.FC = () => {
                   onDelete={handleDeleteActivity}
                   onSelect={setSelectedItem}
                   onNew={() => { setEditingActivity(null); setActivityFormOpen(true); }}
+                  onNewEvent={() => setNewEventDialogOpen(true)}
                 />
               </Paper>
 
@@ -342,6 +361,14 @@ const DashboardPage: React.FC = () => {
         activity={droppedActivity}
         date={droppedDate}
         event={editingEvent}
+      />
+
+      <EventDialog
+        open={newEventDialogOpen}
+        onClose={() => setNewEventDialogOpen(false)}
+        onSave={handleSaveNewEvent}
+        activity={null}
+        date={null}
       />
       
       <ActivityFormDialog
