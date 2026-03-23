@@ -12,6 +12,7 @@ import { getCurrentAcademicYear } from '../utils/academicYear';
 import ObjectiveAccordion from '../components/YearlyGoals/ObjectiveAccordion';
 import ObjectiveFormDialog from '../components/YearlyGoals/ObjectiveFormDialog';
 import GoalEntryFormDialog from '../components/YearlyGoals/GoalEntryFormDialog';
+import ConfirmDialog from '../components/ConfirmDialog';
 import { Objective, GoalEntry, StrategyStatus } from '../types';
 import {
   getObjectives, createObjective, updateObjective, deleteObjective,
@@ -34,6 +35,11 @@ const YearlyGoalsPage: React.FC = () => {
   const [entryDialogOpen, setEntryDialogOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState<GoalEntry | null>(null);
   const [activeObjectiveId, setActiveObjectiveId] = useState<string | null>(null);
+
+  // Confirm dialog
+  const [confirmDialog, setConfirmDialog] = useState<{
+    open: boolean; title: string; message: React.ReactNode; onConfirm: () => void;
+  }>({ open: false, title: '', message: '', onConfirm: () => {} });
 
   const loadData = useCallback(async () => {
     setLoading(true);
@@ -89,10 +95,17 @@ const YearlyGoalsPage: React.FC = () => {
     loadData();
   };
 
-  const handleDeleteObjective = async (obj: Objective) => {
-    if (!window.confirm(`Delete "${obj.title}" and all its goals?`)) return;
-    await deleteObjective(obj.id);
-    loadData();
+  const handleDeleteObjective = (obj: Objective) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Objective',
+      message: `Delete "${obj.title}" and all its goals?`,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, open: false }));
+        await deleteObjective(obj.id);
+        loadData();
+      },
+    });
   };
 
   // --- GoalEntry handlers ---
@@ -140,10 +153,17 @@ const YearlyGoalsPage: React.FC = () => {
     loadData();
   };
 
-  const handleDeleteEntry = async (entry: GoalEntry) => {
-    if (!window.confirm('Delete this goal?')) return;
-    await deleteGoalEntry(entry.id);
-    loadData();
+  const handleDeleteEntry = (entry: GoalEntry) => {
+    setConfirmDialog({
+      open: true,
+      title: 'Delete Goal',
+      message: 'Delete this goal?',
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, open: false }));
+        await deleteGoalEntry(entry.id);
+        loadData();
+      },
+    });
   };
 
   return (
@@ -227,6 +247,15 @@ const YearlyGoalsPage: React.FC = () => {
         onSave={handleSaveEntry}
         entry={editingEntry}
       />
+
+      <ConfirmDialog
+        open={confirmDialog.open}
+        title={confirmDialog.title}
+        onConfirm={confirmDialog.onConfirm}
+        onCancel={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+      >
+        {confirmDialog.message}
+      </ConfirmDialog>
     </Box>
   );
 };

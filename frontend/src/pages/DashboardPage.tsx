@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Grid, Paper, Typography, Button, AppBar, Toolbar, IconButton,
-    Dialog, DialogTitle, DialogContent, DialogActions, List, ListItem, ListItemText
+    List, ListItem, ListItemText
 } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -19,6 +19,7 @@ import ActivityDetails from '../components/ActivityDetails';
 import EventDialog from '../components/EventDialog';
 import ActivityFormDialog from '../components/ActivityFormDialog';
 import GoogleCalendarButton from '../components/GoogleCalendarButton';
+import ConfirmDialog from '../components/ConfirmDialog';
 import NavigationDrawer from '../components/NavigationDrawer';
 import AppBarUserSection from '../components/AppBarUserSection';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
@@ -352,55 +353,52 @@ const DashboardPage: React.FC = () => {
 
       <NavigationDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} />
 
-      <Dialog open={clearWeekConfirmOpen} onClose={() => setClearWeekConfirmOpen(false)}>
-        <DialogTitle>Clear Week</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete all events for the week of{' '}
-            <strong>
-              {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} –{' '}
-              {format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
-            </strong>?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setClearWeekConfirmOpen(false)}>Cancel</Button>
-          <Button onClick={handleClearWeek} color="error" variant="contained">Clear</Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={clearWeekConfirmOpen}
+        title="Clear Week"
+        confirmLabel="Clear"
+        onConfirm={handleClearWeek}
+        onCancel={() => setClearWeekConfirmOpen(false)}
+      >
+        <Typography>
+          Are you sure you want to delete all events for the week of{' '}
+          <strong>
+            {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} –{' '}
+            {format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
+          </strong>?
+        </Typography>
+      </ConfirmDialog>
 
-      <Dialog open={!!deleteConfirm} onClose={() => setDeleteConfirm(null)}>
-        <DialogTitle>Delete Activity</DialogTitle>
-        <DialogContent>
-          <Typography>
-            Are you sure you want to delete <strong>{deleteConfirm?.activity.title}</strong>?
-          </Typography>
-          {deleteConfirm && deleteConfirm.affectedEvents.length > 0 && (
-            <>
-              <Typography variant="body2" sx={{ mt: 1 }}>
-                The following scheduled events will also be deleted:
-              </Typography>
-              <List dense>
-                {deleteConfirm.affectedEvents.map(e => (
-                  <ListItem key={e.id}>
-                    <ListItemText
-                      primary={`${e.date} — ${e.title}`}
-                      secondary={e.startTime ? `${e.startTime.substring(0, 5)} (${e.durationMinutes}m)` : 'No time set'}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-              <Typography variant="caption" color="textSecondary">
-                Note: Only this week's events are shown above. All events for this activity will be deleted.
-              </Typography>
-            </>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setDeleteConfirm(null)}>Cancel</Button>
-          <Button onClick={confirmDeleteActivity} color="error" variant="contained">Delete</Button>
-        </DialogActions>
-      </Dialog>
+      <ConfirmDialog
+        open={!!deleteConfirm}
+        title="Delete Activity"
+        onConfirm={confirmDeleteActivity}
+        onCancel={() => setDeleteConfirm(null)}
+      >
+        <Typography>
+          Are you sure you want to delete <strong>{deleteConfirm?.activity.title}</strong>?
+        </Typography>
+        {deleteConfirm && deleteConfirm.affectedEvents.length > 0 && (
+          <>
+            <Typography variant="body2" sx={{ mt: 1 }}>
+              The following scheduled events will also be deleted:
+            </Typography>
+            <List dense>
+              {deleteConfirm.affectedEvents.map(e => (
+                <ListItem key={e.id}>
+                  <ListItemText
+                    primary={`${e.date} — ${e.title}`}
+                    secondary={e.startTime ? `${e.startTime.substring(0, 5)} (${e.durationMinutes}m)` : 'No time set'}
+                  />
+                </ListItem>
+              ))}
+            </List>
+            <Typography variant="caption" color="textSecondary">
+              Note: Only this week's events are shown above. All events for this activity will be deleted.
+            </Typography>
+          </>
+        )}
+      </ConfirmDialog>
     </Box>
   );
 };
