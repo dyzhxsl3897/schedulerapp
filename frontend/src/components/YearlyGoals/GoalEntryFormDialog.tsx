@@ -3,6 +3,8 @@ import {
   Dialog, DialogTitle, DialogContent, DialogActions,
   Button, TextField, Box, MenuItem, Rating, Typography
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { parse, format } from 'date-fns';
 import { GoalEntry, StrategyStatus } from '../../types';
 
 interface GoalEntryFormDialogProps {
@@ -31,7 +33,7 @@ const GoalEntryFormDialog: React.FC<GoalEntryFormDialogProps> = ({ open, onClose
   const [goal, setGoal] = useState('');
   const [strategy, setStrategy] = useState('');
   const [measure, setMeasure] = useState('');
-  const [endDate, setEndDate] = useState('');
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [importance, setImportance] = useState<number>(3);
   const [result, setResult] = useState('');
   const [status, setStatus] = useState<StrategyStatus>(StrategyStatus.NOT_STARTED);
@@ -41,7 +43,7 @@ const GoalEntryFormDialog: React.FC<GoalEntryFormDialogProps> = ({ open, onClose
       setGoal(entry.goal || '');
       setStrategy(entry.strategy || '');
       setMeasure(entry.measure || '');
-      setEndDate(entry.endDate || '');
+      setEndDate(entry.endDate ? parse(entry.endDate, 'yyyy-MM-dd', new Date()) : null);
       setImportance(entry.importance || 3);
       setResult(entry.result || '');
       setStatus(entry.status || StrategyStatus.NOT_STARTED);
@@ -49,7 +51,7 @@ const GoalEntryFormDialog: React.FC<GoalEntryFormDialogProps> = ({ open, onClose
       setGoal('');
       setStrategy('');
       setMeasure('');
-      setEndDate('');
+      setEndDate(null);
       setImportance(3);
       setResult('');
       setStatus(StrategyStatus.NOT_STARTED);
@@ -58,7 +60,7 @@ const GoalEntryFormDialog: React.FC<GoalEntryFormDialogProps> = ({ open, onClose
 
   const handleSave = () => {
     if (!goal.trim()) return;
-    onSave({ goal: goal.trim(), strategy, measure, endDate, importance, result, status });
+    onSave({ goal: goal.trim(), strategy, measure, endDate: endDate ? format(endDate, 'yyyy-MM-dd') : '', importance, result, status });
     onClose();
   };
 
@@ -92,14 +94,19 @@ const GoalEntryFormDialog: React.FC<GoalEntryFormDialogProps> = ({ open, onClose
             onChange={(e) => setMeasure(e.target.value)}
             sx={{ mb: 2 }}
           />
-          <TextField
-            fullWidth
-            type="date"
+          <DatePicker
             label="End Date"
             value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            slotProps={{ inputLabel: { shrink: true } }}
-            sx={{ mb: 2 }}
+            onChange={(newValue) => setEndDate(newValue)}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                sx: { mb: 2 },
+              },
+              field: {
+                clearable: true,
+              },
+            }}
           />
           <Box sx={{ mb: 2 }}>
             <Typography component="legend" variant="body2" sx={{ mb: 0.5 }}>

@@ -3,6 +3,9 @@ import {
     Dialog, DialogTitle, DialogContent, DialogActions,
     Button, TextField, Box, Typography
 } from '@mui/material';
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+import { format, parse } from 'date-fns';
 import { Activity, ScheduledEvent } from '../types';
 
 interface EventDialogProps {
@@ -15,11 +18,11 @@ interface EventDialogProps {
 }
 
 const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activity, date, event }) => {
-  const [startTime, setStartTime] = useState('');
+  const [startTime, setStartTime] = useState<Date | null>(null);
   const [duration, setDuration] = useState('60');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [eventDate, setEventDate] = useState('');
+  const [eventDate, setEventDate] = useState<Date | null>(null);
 
   const isEditing = !!event;
   const isStandalone = !activity && !event;
@@ -27,31 +30,32 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
   useEffect(() => {
     if (open) {
       if (event) {
-        setStartTime(event.startTime ? event.startTime.substring(0, 5) : '');
+        setStartTime(event.startTime ? parse(event.startTime.substring(0, 5), 'HH:mm', new Date()) : null);
         setDuration(event.durationMinutes?.toString() || '60');
       } else {
-        setStartTime('');
+        setStartTime(null);
         setDuration('60');
       }
       setTitle('');
       setDescription('');
-      setEventDate('');
+      setEventDate(null);
     }
   }, [open, event]);
 
   const handleSave = () => {
+    const startTimeStr = startTime ? format(startTime, 'HH:mm') : undefined;
     if (isStandalone) {
       onSave({
         title: title,
         description: description || undefined,
-        date: eventDate,
-        startTime: startTime || undefined,
-        durationMinutes: startTime ? parseInt(duration) : undefined,
+        date: eventDate ? format(eventDate, 'yyyy-MM-dd') : undefined,
+        startTime: startTimeStr,
+        durationMinutes: startTimeStr ? parseInt(duration) : undefined,
       });
     } else {
       onSave({
-        startTime: startTime || undefined,
-        durationMinutes: startTime ? parseInt(duration) : undefined,
+        startTime: startTimeStr,
+        durationMinutes: startTimeStr ? parseInt(duration) : undefined,
       });
     }
     onClose();
@@ -83,15 +87,17 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
                 rows={2}
                 sx={{ mt: 2 }}
               />
-              <TextField
-                fullWidth
+              <DatePicker
                 label="Date"
-                type="date"
                 value={eventDate}
-                onChange={(e) => setEventDate(e.target.value)}
-                InputLabelProps={{ shrink: true }}
-                required
-                sx={{ mt: 2 }}
+                onChange={(newValue) => setEventDate(newValue)}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    required: true,
+                    sx: { mt: 2 },
+                  },
+                }}
               />
             </>
           ) : (
@@ -102,18 +108,23 @@ const EventDialog: React.FC<EventDialogProps> = ({ open, onClose, onSave, activi
               </Typography>
             </>
           )}
-          
-          <TextField
-            fullWidth
-            label="Start Time (HH:mm)"
-            type="time"
+
+          <TimePicker
+            label="Start Time"
             value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            InputLabelProps={{ shrink: true }}
-            sx={{ mt: 2 }}
-            helperText="Leave empty to add to Spare Section"
+            onChange={(newValue) => setStartTime(newValue)}
+            slotProps={{
+              textField: {
+                fullWidth: true,
+                sx: { mt: 2 },
+                helperText: 'Leave empty to add to Spare Section',
+              },
+              field: {
+                clearable: true,
+              },
+            }}
           />
-          
+
           <TextField
             fullWidth
             label="Duration (minutes)"
