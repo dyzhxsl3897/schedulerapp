@@ -1,44 +1,40 @@
 # Scheduler App
 
-A comprehensive scheduling application featuring a **Spring Boot** backend, a **React (Vite)** frontend, and a **MySQL** database.
+A full-stack weekly planner and yearly goal tracker built with Spring Boot, React, and MySQL.
 
 ## Features
 
-- **User Authentication:** Secure Login and Registration using JWT tokens.
-- **Activity Management:** Create, Edit, and Delete activity templates (Backlog).
-- **Weekly Scheduler:** 
-  - Drag and drop activities into a 7-day calendar.
-  - Interactive event scheduling with start time and duration.
-  - "Spare Section" for events without a specific time.
-  - Visual status tracking with checkboxes for completed tasks.
+- **User Authentication:** Secure login and registration using JWT tokens, with password change support.
+- **Weekly Planner:** Drag-and-drop scheduling with a 7-day calendar view (6 AM - midnight). Create activities and drag them onto time slots to schedule events. Standalone event creation, sibling event highlighting, and clear-week functionality.
+- **Yearly Goals (OGSM):** Track objectives, goals, strategies, and measures organized by academic year (Sept - Aug). Export to Excel or print.
+- **Google Calendar Integration:** OAuth2-based sync to import/export events with Google Calendar.
 - **Dockerized Environment:** One-command setup for the entire stack.
 
 ## Tech Stack
 
-- **Backend:** Java 21, Spring Boot 3, Spring Security, JWT, JPA/Hibernate.
-- **Frontend:** React 19, TypeScript, Vite, Material UI (MUI) v6, dnd-kit, Axios.
-- **Database:** MySQL 8.0.
+| Layer    | Technology                                                   |
+| -------- | ------------------------------------------------------------ |
+| Backend  | Java 21, Spring Boot 3, Spring Security, JWT, JPA/Hibernate  |
+| Frontend | React 19, TypeScript, Vite, MUI v7, MUI X Date/Time Pickers, dnd-kit |
+| Database | MySQL 8.0                                                    |
+| Infra    | Docker Compose, Nginx                                        |
 
 ---
 
 ## Getting Started with Docker
-
-The easiest way to run the entire application is using Docker Compose.
 
 ### Prerequisites
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) installed and running.
 
 ### Running the Application
 
-To build and start all services (Frontend, Backend, Database) with a **custom project name**:
-
 ```bash
 docker-compose -p scheduler-app up -d --build
 ```
 
-- `-p scheduler-app`: Sets the project name to `scheduler-app` (this prefixes networks and volumes).
-- `-d`: Runs containers in detached mode (background).
-- `--build`: Forces a rebuild of the images (recommended for the first run or after code changes).
+- `-p scheduler-app`: Sets the project name (prefixes networks and volumes).
+- `-d`: Runs containers in detached mode.
+- `--build`: Forces a rebuild of the images.
 
 ### Accessing the App
 
@@ -48,8 +44,6 @@ docker-compose -p scheduler-app up -d --build
 
 ### Stopping the App
 
-To stop and remove the containers associated with your named project:
-
 ```bash
 docker-compose -p scheduler-app down
 ```
@@ -58,37 +52,67 @@ docker-compose -p scheduler-app down
 
 ## Manual Development Setup
 
-If you prefer to run services individually for development:
-
 ### Backend
-1. Ensure a MySQL instance is running (or use `backend/docker-compose.yml`).
-2. Update `backend/src/main/resources/application.properties` if needed.
-3. Run:
-   ```bash
-   cd backend
-   mvn spring-boot:run
-   ```
+Requires a MySQL instance running on port 3306.
+
+```bash
+cd backend
+mvn spring-boot:run
+```
 
 ### Frontend
-1. Ensure the backend is running.
-2. Run:
-   ```bash
-   cd frontend
-   npm install
-   npm run dev
-   ```
+Requires the backend to be running.
+
+```bash
+cd frontend
+npm install
+npm run dev
+```
+
+### Testing
+
+```bash
+cd backend
+mvn test          # uses H2 in-memory DB
+```
+
+---
+
+## Configuration
+
+### Backend
+Edit `backend/src/main/resources/application.properties` for DB credentials, JWT secret, and token expiration.
+
+### Google Calendar
+Set these environment variables (or configure in `docker-compose.yml`):
+- `GOOGLE_CLIENT_ID`
+- `GOOGLE_CLIENT_SECRET`
+- `GOOGLE_REDIRECT_URI`
 
 ---
 
 ## Project Structure
 
 ```text
-├── backend/            # Spring Boot Application
-│   ├── Dockerfile      # Multi-stage build for Java
-│   └── src/            # Source code (API, Security, Models)
-├── frontend/           # React TypeScript Application
-│   ├── Dockerfile      # Multi-stage build with Nginx
-│   ├── nginx.conf      # SPA routing configuration
-│   └── src/            # Components, Pages, Logic
-└── docker-compose.yml  # Root orchestration file
+SchedulerApp/
+├── backend/                  # Spring Boot REST API
+│   ├── Dockerfile
+│   └── src/main/java/com/scheduler/app/
+│       ├── controller/       # Auth, Activity, Event, Objective, GoalEntry, GoogleCalendar
+│       ├── model/            # JPA entities (User, Activity, Event, Objective, GoalEntry)
+│       ├── repository/       # Spring Data JPA repositories
+│       ├── service/          # GoogleCalendarService
+│       ├── security/         # JWT auth, Spring Security config
+│       └── payload/          # Request/response DTOs
+├── frontend/                 # React + Vite SPA
+│   ├── Dockerfile
+│   ├── nginx.conf            # SPA routing configuration
+│   └── src/
+│       ├── pages/            # LoginPage, RegisterPage, DashboardPage, YearlyGoalsPage
+│       ├── components/       # WeekScheduler, YearlyGoals, ActivityList, dialogs
+│       ├── api/              # Axios instance, goals API
+│       ├── context/          # AuthContext
+│       ├── utils/            # Excel export, academic year calc, priority colors
+│       └── types/            # TypeScript interfaces
+└── docker-compose.yml        # Root orchestration file
 ```

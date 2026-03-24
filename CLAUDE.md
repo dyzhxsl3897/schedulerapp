@@ -2,6 +2,10 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Maintenance
+
+Keep this file and `README.md` up to date. Whenever you add new features, models, endpoints, components, or make significant architectural changes, update the relevant sections of both files proactively.
+
 ## Architecture
 
 Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript frontend + MySQL 8.0, orchestrated with Docker Compose.
