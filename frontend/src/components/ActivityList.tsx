@@ -6,7 +6,6 @@ import { getPriorityColors } from '../utils/priority';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import AddIcon from '@mui/icons-material/Add';
-import EventIcon from '@mui/icons-material/Event';
 
 interface ActivityItemProps {
   activity: Activity;
@@ -78,7 +77,7 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, onEdit, onDelet
           <Button startIcon={<AddIcon />} size="small" variant="outlined" onClick={onNew}>
             Activity
           </Button>
-          <Button startIcon={<EventIcon />} size="small" variant="outlined" onClick={onNewEvent}>
+          <Button startIcon={<AddIcon />} size="small" variant="outlined" onClick={onNewEvent}>
             Event
           </Button>
         </Box>
