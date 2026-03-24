@@ -4,6 +4,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import PrintIcon from '@mui/icons-material/Print';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import AddIcon from '@mui/icons-material/Add';
 import NavigationDrawer from '../components/NavigationDrawer';
 import AppBarUserSection from '../components/AppBarUserSection';
@@ -19,6 +20,7 @@ import {
   getGoalEntries, createGoalEntry, updateGoalEntry, deleteGoalEntry,
   GoalEntryRequest,
 } from '../api/goalsApi';
+import { exportGoalsToExcel } from '../utils/exportGoals';
 
 const YearlyGoalsPage: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -178,6 +180,9 @@ const YearlyGoalsPage: React.FC = () => {
           </Typography>
           <AcademicYearSelector value={academicYear} onChange={setAcademicYear} />
           <Box sx={{ flexGrow: 1 }} />
+          <IconButton color="inherit" onClick={() => exportGoalsToExcel(objectives, goalEntries, academicYear)} title="Export to Excel">
+            <FileDownloadIcon />
+          </IconButton>
           <IconButton color="inherit" onClick={() => window.print()} title="Print">
             <PrintIcon />
           </IconButton>
