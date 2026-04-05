@@ -31,6 +31,9 @@ public class Activity {
     @Column(name = "user_id", nullable = false)
     private UUID userId;
 
+    @Column(name = "sort_order")
+    private Integer sortOrder = 0;
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private LocalDateTime createdAt;
@@ -39,10 +42,11 @@ public class Activity {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
-    public Activity(String title, String description, Priority priority, UUID userId) {
+    public Activity(String title, String description, Priority priority, UUID userId, Integer sortOrder) {
         this.title = title;
         this.description = description;
         this.priority = priority;
         this.userId = userId;
+        this.sortOrder = sortOrder;
     }
 }

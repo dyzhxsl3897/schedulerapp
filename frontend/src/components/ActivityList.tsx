@@ -1,5 +1,7 @@
 import React from 'react';
-import { useDraggable } from '@dnd-kit/core';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { Paper, Typography, IconButton, Box, Button } from '@mui/material';
 import { Activity } from '../types';
 import { getPriorityColors } from '../utils/priority';
@@ -15,18 +17,19 @@ interface ActivityItemProps {
 }
 
 const ActivityItem: React.FC<ActivityItemProps> = ({ activity, onEdit, onDelete, onSelect }) => {
-  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: `activity-${activity.id}`,
     data: { activity },
   });
 
   const colors = getPriorityColors(activity.priority);
 
-  const style = transform ? {
-    transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-    zIndex: 1000,
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    zIndex: isDragging ? 1000 : undefined,
     opacity: isDragging ? 0.5 : 1,
-  } : undefined;
+  };
 
   return (
     <div ref={setNodeRef} style={style} {...listeners} {...attributes}>
@@ -86,15 +89,17 @@ const ActivityList: React.FC<ActivityListProps> = ({ activities, onEdit, onDelet
         {activities.length === 0 ? (
           <Typography variant="body2" color="textSecondary" fontSize="0.8rem">No activities. Create one!</Typography>
         ) : (
-          activities.map(activity => (
-            <ActivityItem
-              key={activity.id}
-              activity={activity}
-              onEdit={onEdit}
-              onDelete={onDelete}
-              onSelect={onSelect}
-            />
-          ))
+          <SortableContext items={activities.map(a => `activity-${a.id}`)} strategy={verticalListSortingStrategy}>
+            {activities.map(activity => (
+              <ActivityItem
+                key={activity.id}
+                activity={activity}
+                onEdit={onEdit}
+                onDelete={onDelete}
+                onSelect={onSelect}
+              />
+            ))}
+          </SortableContext>
         )}
       </Box>
     </Box>

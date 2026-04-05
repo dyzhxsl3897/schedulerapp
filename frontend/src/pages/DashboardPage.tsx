@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
     Box, Grid, Paper, Typography, Button, AppBar, Toolbar, IconButton,
-    List, ListItem, ListItemText
+    List, ListItem, ListItemText, Menu, MenuItem, ListItemIcon, SpeedDial, SpeedDialAction
 } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
@@ -9,7 +9,12 @@ import TodayIcon from '@mui/icons-material/Today';
 import PrintIcon from '@mui/icons-material/Print';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
 import MenuIcon from '@mui/icons-material/Menu';
+import MoreVertIcon from '@mui/icons-material/MoreVert';
+import AddIcon from '@mui/icons-material/Add';
+import EventIcon from '@mui/icons-material/Event';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
 import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove } from '@dnd-kit/sortable';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
 import { Activity, ScheduledEvent } from '../types';
@@ -19,22 +24,25 @@ import ActivityDetails from '../components/ActivityDetails';
 import EventDialog from '../components/EventDialog';
 import ActivityFormDialog from '../components/ActivityFormDialog';
 import GoogleCalendarButton from '../components/GoogleCalendarButton';
+import MobileActivitySheet from '../components/MobileActivitySheet';
 import ConfirmDialog from '../components/ConfirmDialog';
 import NavigationDrawer from '../components/NavigationDrawer';
 import AppBarUserSection from '../components/AppBarUserSection';
+import { useIsMobile } from '../hooks/useIsMobile';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
   const [activities, setActivities] = useState<Activity[]>([]);
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
   const [selectedItem, setSelectedItem] = useState<Activity | ScheduledEvent | null>(null);
-  
+
   // Dialog states
   const [eventDialogOpen, setEventDialogOpen] = useState(false);
   const [activityFormOpen, setActivityFormOpen] = useState(false);
-  
+
   // Drag drop temp state
   const [droppedActivity, setDroppedActivity] = useState<Activity | null>(null);
   const [droppedDate, setDroppedDate] = useState<string | null>(null);
@@ -44,6 +52,7 @@ const DashboardPage: React.FC = () => {
   const [deleteConfirm, setDeleteConfirm] = useState<{ activity: Activity; affectedEvents: ScheduledEvent[] } | null>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [clearWeekConfirmOpen, setClearWeekConfirmOpen] = useState(false);
+  const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null);
 
   const sensors = useSensors(
     useSensor(MouseSensor, { activationConstraint: { distance: 5 } }),
@@ -77,16 +86,43 @@ const DashboardPage: React.FC = () => {
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (over && over.id.toString().startsWith('day-')) {
-      const activityId = active.id.toString().replace('activity-', '');
+    if (!over) return;
+
+    const activeId = active.id.toString();
+    const overId = over.id.toString();
+
+    // Existing behavior: drag activity onto a day column to schedule
+    if (overId.startsWith('day-')) {
+      const activityId = activeId.replace('activity-', '');
       const activity = activities.find(a => a.id === activityId);
       const dateStr = over.data.current?.date;
-      
+
       if (activity && dateStr) {
         setDroppedActivity(activity);
         setDroppedDate(dateStr);
         setEventDialogOpen(true);
       }
+      return;
+    }
+
+    // Reorder within activity list
+    if (activeId.startsWith('activity-') && overId.startsWith('activity-')) {
+      const oldId = activeId.replace('activity-', '');
+      const newId = overId.replace('activity-', '');
+      if (oldId === newId) return;
+
+      const oldIndex = activities.findIndex(a => a.id === oldId);
+      const newIndex = activities.findIndex(a => a.id === newId);
+      if (oldIndex === -1 || newIndex === -1) return;
+
+      const reordered = arrayMove(activities, oldIndex, newIndex);
+      setActivities(reordered);
+
+      const reorderPayload = reordered.map((a, index) => ({ id: a.id, sortOrder: index }));
+      api.put('/activities/reorder', reorderPayload).catch(err => {
+        console.error('Failed to reorder activities', err);
+        fetchActivities();
+      });
     }
   };
 
@@ -241,45 +277,91 @@ const DashboardPage: React.FC = () => {
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       <AppBar position="static" className="no-print">
-        <Toolbar sx={{ gap: 0.5 }}>
-          <IconButton color="inherit" edge="start" onClick={() => setDrawerOpen(true)} sx={{ mr: 1 }}>
+        <Toolbar sx={{ gap: 0.5, minHeight: isMobile ? 48 : undefined }}>
+          <IconButton color="inherit" edge="start" onClick={() => setDrawerOpen(true)} sx={{ mr: isMobile ? 0 : 1 }}>
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" component="div" sx={{ mr: 2 }}>
-            Weekly Scheduler
-          </Typography>
+          {!isMobile && (
+            <Typography variant="h6" component="div" sx={{ mr: 2 }}>
+              Weekly Scheduler
+            </Typography>
+          )}
           <IconButton color="inherit" onClick={() => setCurrentDate(d => subWeeks(d, 1))} size="small">
             <ChevronLeftIcon />
           </IconButton>
-          <Typography variant="subtitle1" sx={{ minWidth: 180, textAlign: 'center', fontWeight: 'bold', color: 'inherit' }}>
-            {format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} – {format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}
+          <Typography
+            variant={isMobile ? 'body2' : 'subtitle1'}
+            sx={{ minWidth: isMobile ? 'auto' : 180, textAlign: 'center', fontWeight: 'bold', color: 'inherit', whiteSpace: 'nowrap' }}
+          >
+            {isMobile
+              ? `${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} – ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'd')}`
+              : `${format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d')} – ${format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'MMM d, yyyy')}`
+            }
           </Typography>
           <IconButton color="inherit" onClick={() => setCurrentDate(d => addWeeks(d, 1))} size="small">
             <ChevronRightIcon />
           </IconButton>
-          <Button
-            color="inherit"
-            size="small"
-            startIcon={<TodayIcon />}
-            onClick={() => setCurrentDate(new Date())}
-          >
-            Today
-          </Button>
-          <GoogleCalendarButton
-            weekStart={format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
-            weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
-            onSyncComplete={fetchEvents}
-          />
-          <IconButton color="inherit" onClick={() => setClearWeekConfirmOpen(true)} size="small" title="Clear all events this week">
-            <DeleteSweepIcon />
-          </IconButton>
-          <IconButton color="inherit" onClick={() => window.print()} size="small" title="Print weekly planner">
-            <PrintIcon />
-          </IconButton>
+          {isMobile ? (
+            <IconButton color="inherit" onClick={() => setCurrentDate(new Date())} size="small" title="Today">
+              <TodayIcon />
+            </IconButton>
+          ) : (
+            <Button color="inherit" size="small" startIcon={<TodayIcon />} onClick={() => setCurrentDate(new Date())}>
+              Today
+            </Button>
+          )}
+          {!isMobile && (
+            <>
+              <GoogleCalendarButton
+                weekStart={format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+                weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+                onSyncComplete={fetchEvents}
+              />
+              <IconButton color="inherit" onClick={() => setClearWeekConfirmOpen(true)} size="small" title="Clear all events this week">
+                <DeleteSweepIcon />
+              </IconButton>
+              <IconButton color="inherit" onClick={() => window.print()} size="small" title="Print weekly planner">
+                <PrintIcon />
+              </IconButton>
+            </>
+          )}
           <Box sx={{ flexGrow: 1 }} />
-          <AppBarUserSection />
+          {isMobile ? (
+            <IconButton color="inherit" onClick={(e) => setMoreMenuAnchor(e.currentTarget)} size="small">
+              <MoreVertIcon />
+            </IconButton>
+          ) : (
+            <AppBarUserSection />
+          )}
         </Toolbar>
       </AppBar>
+      {/* Mobile overflow menu */}
+      {isMobile && (
+        <Menu
+          anchorEl={moreMenuAnchor}
+          open={Boolean(moreMenuAnchor)}
+          onClose={() => setMoreMenuAnchor(null)}
+        >
+          <Box sx={{ px: 1, py: 0.5 }}>
+            <GoogleCalendarButton
+              weekStart={format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+              weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
+              onSyncComplete={() => { fetchEvents(); setMoreMenuAnchor(null); }}
+            />
+          </Box>
+          <MenuItem onClick={() => { setClearWeekConfirmOpen(true); setMoreMenuAnchor(null); }}>
+            <ListItemIcon><DeleteSweepIcon fontSize="small" /></ListItemIcon>
+            Clear Week
+          </MenuItem>
+          <MenuItem onClick={() => { window.print(); setMoreMenuAnchor(null); }}>
+            <ListItemIcon><PrintIcon fontSize="small" /></ListItemIcon>
+            Print
+          </MenuItem>
+          <Box sx={{ borderTop: '1px solid', borderColor: 'divider', mt: 0.5, pt: 0.5, px: 1 }}>
+            <AppBarUserSection />
+          </Box>
+        </Menu>
+      )}
 
       <Typography
         variant="h5"
@@ -290,7 +372,7 @@ const DashboardPage: React.FC = () => {
       </Typography>
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
-        <Grid container spacing={2} sx={{ p: 2, alignItems: 'flex-start', justifyContent: 'center' }}>
+        <Grid container spacing={isMobile ? 1 : 2} sx={{ p: isMobile ? 1 : 2, alignItems: 'flex-start', justifyContent: 'center' }}>
           {/* Left: Scheduler */}
           <Grid size={{ xs: 12, md: 8, lg: 9 }}>
             <WeekScheduler
@@ -303,32 +385,71 @@ const DashboardPage: React.FC = () => {
             />
           </Grid>
 
-          {/* Right: Panels */}
-          <Grid size={{ xs: 12, md: 4, lg: 3 }} className="no-print">
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: 'calc(100vh - 88px)' }}>
-              <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: '50%', minHeight: 0 }}>
-                <ActivityList
-                  activities={activities}
-                  onEdit={(a) => { setEditingActivity(a); setActivityFormOpen(true); }}
-                  onDelete={handleDeleteActivity}
-                  onSelect={setSelectedItem}
-                  onNew={() => { setEditingActivity(null); setActivityFormOpen(true); }}
-                  onNewEvent={() => setNewEventDialogOpen(true)}
-                />
-              </Paper>
+          {/* Right: Panels (desktop only) */}
+          {!isMobile && (
+            <Grid size={{ xs: 12, md: 4, lg: 3 }} className="no-print">
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, height: 'calc(100vh - 88px)' }}>
+                <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: '50%', minHeight: 0 }}>
+                  <ActivityList
+                    activities={activities}
+                    onEdit={(a) => { setEditingActivity(a); setActivityFormOpen(true); }}
+                    onDelete={handleDeleteActivity}
+                    onSelect={setSelectedItem}
+                    onNew={() => { setEditingActivity(null); setActivityFormOpen(true); }}
+                    onNewEvent={() => setNewEventDialogOpen(true)}
+                  />
+                </Paper>
 
-              <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: '50%', minHeight: 0, overflow: 'hidden' }}>
-                <ActivityDetails
-                  item={selectedItem}
-                  onDeleteEvent={handleDeleteEvent}
-                  onEditEvent={handleEditEvent}
-                  onToggleComplete={handleToggleEventComplete}
-                />
-              </Paper>
-            </Box>
-          </Grid>
+                <Paper elevation={2} sx={{ display: 'flex', flexDirection: 'column', height: '50%', minHeight: 0, overflow: 'hidden' }}>
+                  <ActivityDetails
+                    item={selectedItem}
+                    onDeleteEvent={handleDeleteEvent}
+                    onEditEvent={handleEditEvent}
+                    onToggleComplete={handleToggleEventComplete}
+                  />
+                </Paper>
+              </Box>
+            </Grid>
+          )}
         </Grid>
+
+      {/* Mobile: Bottom sheet for activities */}
+      {isMobile && (
+        <MobileActivitySheet
+          activities={activities}
+          selectedItem={selectedItem}
+          onEditActivity={(a) => { setEditingActivity(a); setActivityFormOpen(true); }}
+          onDeleteActivity={handleDeleteActivity}
+          onSelectItem={setSelectedItem}
+          onNewActivity={() => { setEditingActivity(null); setActivityFormOpen(true); }}
+          onNewEvent={() => setNewEventDialogOpen(true)}
+          onDeleteEvent={handleDeleteEvent}
+          onEditEvent={handleEditEvent}
+          onToggleComplete={handleToggleEventComplete}
+        />
+      )}
       </DndContext>
+
+      {/* Mobile: Speed Dial FAB */}
+      {isMobile && (
+        <SpeedDial
+          ariaLabel="Quick actions"
+          sx={{ position: 'fixed', bottom: 72, right: 16 }}
+          icon={<AddIcon />}
+          className="no-print"
+        >
+          <SpeedDialAction
+            icon={<FitnessCenterIcon />}
+            tooltipTitle="New Activity"
+            onClick={() => { setEditingActivity(null); setActivityFormOpen(true); }}
+          />
+          <SpeedDialAction
+            icon={<EventIcon />}
+            tooltipTitle="New Event"
+            onClick={() => setNewEventDialogOpen(true)}
+          />
+        </SpeedDial>
+      )}
 
       {/* Print-only: Activity Description (second page) */}
       <Box className="print-only print-descriptions">

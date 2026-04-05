@@ -16,6 +16,8 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import com.scheduler.app.payload.request.ReorderRequest;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -33,7 +35,7 @@ public class ActivityController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<Activity>> getAllActivities() {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<Activity> activities = activityRepository.findByUserId(userDetails.getId());
+        List<Activity> activities = activityRepository.findByUserIdOrderBySortOrderAsc(userDetails.getId());
         return ResponseEntity.ok(activities);
     }
 
@@ -42,11 +44,17 @@ public class ActivityController {
     public ResponseEntity<Activity> createActivity(@Valid @RequestBody ActivityRequest activityRequest) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         
+        List<Activity> existing = activityRepository.findByUserIdOrderBySortOrderAsc(userDetails.getId());
+        int nextSortOrder = existing.isEmpty() ? 0 : existing.stream()
+                .mapToInt(a -> a.getSortOrder() != null ? a.getSortOrder() : 0)
+                .max().orElse(0) + 1;
+
         Activity activity = new Activity(
                 activityRequest.getTitle(),
                 activityRequest.getDescription(),
                 activityRequest.getPriority() != null ? activityRequest.getPriority() : Priority.MEDIUM,
-                userDetails.getId()
+                userDetails.getId(),
+                nextSortOrder
         );
 
         Activity savedActivity = activityRepository.save(activity);
@@ -72,6 +80,23 @@ public class ActivityController {
             activityRepository.save(activity);
             return ResponseEntity.ok(activity);
         }).orElse(ResponseEntity.notFound().build());
+    }
+
+    @PutMapping("/reorder")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @Transactional
+    public ResponseEntity<?> reorderActivities(@RequestBody List<ReorderRequest> reorderRequests) {
+        UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        for (ReorderRequest req : reorderRequests) {
+            activityRepository.findById(req.getId()).ifPresent(activity -> {
+                if (activity.getUserId().equals(userDetails.getId())) {
+                    activity.setSortOrder(req.getSortOrder());
+                    activityRepository.save(activity);
+                }
+            });
+        }
+        return ResponseEntity.ok(new MessageResponse("Activities reordered successfully!"));
     }
 
     @DeleteMapping("/{id}")

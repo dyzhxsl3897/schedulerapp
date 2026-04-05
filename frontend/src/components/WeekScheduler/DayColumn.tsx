@@ -14,6 +14,7 @@ interface DayColumnProps {
   onDeleteEvent: (id: string) => void;
   spareHeight: number;
   selectedActivityId?: string;
+  isMobile?: boolean;
 }
 
 const START_HOUR = 15;
@@ -83,7 +84,7 @@ function computeOverlapLayout(events: ScheduledEvent[]): Map<string, { column: n
   return assignments;
 }
 
-const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, onDeleteEvent, spareHeight, selectedActivityId }) => {
+const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, onDeleteEvent, spareHeight, selectedActivityId, isMobile }) => {
   const dateStr = format(date, 'yyyy-MM-dd');
   const { isOver, setNodeRef } = useDroppable({
     id: `day-${dateStr}`,
@@ -121,33 +122,45 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
   };
 
   return (
-    <Box 
+    <Box
       ref={setNodeRef}
-      sx={{ 
-        flex: 1, 
-        borderRight: '1px solid #ddd', 
-        minWidth: 120, 
+      sx={{
+        flex: 1,
+        borderRight: isMobile ? 'none' : '1px solid #ddd',
+        minWidth: isMobile ? 'auto' : 120,
         backgroundColor: isOver ? '#f0f7ff' : 'white',
+        transition: 'background-color 0.2s ease',
         position: 'relative'
       }}
     >
-      <Box sx={{ p: 1, textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#f5f5f5' }}>
-        <Typography variant="subtitle2">{format(date, 'EEE')}</Typography>
-        <Typography variant="caption">{format(date, 'MMM d')}</Typography>
-      </Box>
+      {/* Header - hidden on mobile since tabs handle this */}
+      {!isMobile && (
+        <Box sx={{ p: 1, textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#f5f5f5' }}>
+          <Typography variant="subtitle2">{format(date, 'EEE')}</Typography>
+          <Typography variant="caption">{format(date, 'MMM d')}</Typography>
+        </Box>
+      )}
+      {/* Mobile: thin header with just the date for context */}
+      {isMobile && (
+        <Box sx={{ py: 0.5, px: 1, textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#f5f5f5' }}>
+          <Typography variant="body2" fontWeight="bold">
+            {format(date, 'EEEE, MMM d')}
+          </Typography>
+        </Box>
+      )}
 
       {/* Time Grid Area */}
       <Box sx={{ position: 'relative', height: (END_HOUR - START_HOUR) * HOUR_HEIGHT }}>
         {/* Hour markers */}
         {Array.from({ length: END_HOUR - START_HOUR }).map((_, i) => (
-          <Box 
-            key={i} 
-            sx={{ 
-              height: HOUR_HEIGHT, 
-              borderBottom: '1px solid #eee', 
+          <Box
+            key={i}
+            sx={{
+              height: HOUR_HEIGHT,
+              borderBottom: '1px solid #eee',
               boxSizing: 'border-box',
               pointerEvents: 'none'
-            }} 
+            }}
           />
         ))}
 
@@ -164,6 +177,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
               title={<>{event.title}<br />{event.startTime?.substring(0, 5)}<br />{event.durationMinutes} min</>}
               arrow
               placement="top"
+              enterTouchDelay={isMobile ? 500 : 200}
             >
             <Paper
               elevation={2}
@@ -173,16 +187,24 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
                 top: top,
                 left: `${leftPercent}%`,
                 width: `${widthPercent}%`,
-                height: height,
+                height: Math.max(height, isMobile ? 36 : height),
                 zIndex: 10,
-                p: 0.5,
+                p: isMobile ? 0.75 : 0.5,
                 boxSizing: 'border-box',
-                px: '2px',
+                px: isMobile ? '6px' : '2px',
                 overflow: 'hidden',
                 backgroundColor: getPriorityColors(event.priority).backgroundColor,
                 borderLeft: `4px solid ${getPriorityColors(event.priority).borderColor}`,
                 display: 'flex',
                 flexDirection: 'column',
+                transition: 'box-shadow 0.15s ease, transform 0.15s ease',
+                cursor: 'pointer',
+                ...(isMobile && {
+                  '&:active': {
+                    transform: 'scale(0.98)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  },
+                }),
                 ...(selectedActivityId && event.activityId === selectedActivityId && {
                   outline: '2px solid #1976d2',
                   outlineOffset: '-2px',
@@ -192,24 +214,29 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
             >
               <Box display="flex" alignItems="center">
                 <Checkbox
-                  size="small"
+                  size={isMobile ? 'medium' : 'small'}
                   checked={event.isCompleted}
                   onChange={(e) => onToggleComplete(event.id, e.target.checked)}
                   onClick={(e) => e.stopPropagation()}
-                  sx={{ p: 0 }}
+                  sx={{ p: isMobile ? '4px' : 0 }}
                 />
-                <Typography variant="caption" fontWeight="bold" noWrap sx={{ ml: 0.5, textDecoration: event.isCompleted ? 'line-through' : 'none' }}>
+                <Typography
+                  variant={isMobile ? 'body2' : 'caption'}
+                  fontWeight="bold"
+                  noWrap
+                  sx={{ ml: 0.5, textDecoration: event.isCompleted ? 'line-through' : 'none' }}
+                >
                   {event.title}
                 </Typography>
                 <IconButton
                   size="small"
                   onClick={(e) => { e.stopPropagation(); onDeleteEvent(event.id); }}
-                  sx={{ ml: 'auto', p: 0 }}
+                  sx={{ ml: 'auto', p: isMobile ? '4px' : 0 }}
                 >
-                  <CloseIcon sx={{ fontSize: 14 }} />
+                  <CloseIcon sx={{ fontSize: isMobile ? 18 : 14 }} />
                 </IconButton>
               </Box>
-              <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.65rem' }}>
+              <Typography variant="caption" color="textSecondary" sx={{ fontSize: isMobile ? '0.75rem' : '0.65rem' }}>
                 {event.startTime?.substring(0, 5)} ({event.durationMinutes}m)
               </Typography>
             </Paper>
@@ -219,7 +246,7 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
       </Box>
 
       {/* Spare Section */}
-      <Box sx={{ minHeight: spareHeight, borderTop: '2px dashed #ccc', p: 0.5 }}>
+      <Box sx={{ minHeight: spareHeight, borderTop: '2px dashed #ccc', p: isMobile ? 1 : 0.5 }}>
         <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', color: '#888' }}>Spare Section</Typography>
         {spareEvents.map(event => (
           <Tooltip
@@ -227,18 +254,27 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
             title={<>{event.title}<br />{event.startTime ? event.startTime.substring(0, 5) : 'No time'}<br />{event.durationMinutes} min</>}
             arrow
             placement="top"
+            enterTouchDelay={isMobile ? 500 : 200}
           >
           <Paper
             elevation={1}
             onClick={() => onSelectEvent(event)}
             sx={{
-                p: 0.5,
+                p: isMobile ? 1 : 0.5,
                 mb: 0.5,
-                fontSize: '0.75rem',
+                fontSize: isMobile ? '0.85rem' : '0.75rem',
                 display: 'flex',
                 flexDirection: 'column',
                 backgroundColor: getPriorityColors(event.priority).backgroundColor,
                 borderLeft: `4px solid ${getPriorityColors(event.priority).borderColor}`,
+                transition: 'box-shadow 0.15s ease, transform 0.15s ease',
+                cursor: 'pointer',
+                ...(isMobile && {
+                  '&:active': {
+                    transform: 'scale(0.98)',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.2)',
+                  },
+                }),
                 ...(selectedActivityId && event.activityId === selectedActivityId && {
                   outline: '2px solid #1976d2',
                   outlineOffset: '-2px',
@@ -248,25 +284,30 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
           >
             <Box display="flex" alignItems="center">
               <Checkbox
-                size="small"
+                size={isMobile ? 'medium' : 'small'}
                 checked={event.isCompleted}
                 onChange={(e) => onToggleComplete(event.id, e.target.checked)}
                 onClick={(e) => e.stopPropagation()}
-                sx={{ p: 0 }}
+                sx={{ p: isMobile ? '4px' : 0 }}
               />
-              <Typography variant="caption" fontWeight="bold" noWrap sx={{ ml: 0.5, textDecoration: event.isCompleted ? 'line-through' : 'none' }}>
+              <Typography
+                variant={isMobile ? 'body2' : 'caption'}
+                fontWeight="bold"
+                noWrap
+                sx={{ ml: 0.5, textDecoration: event.isCompleted ? 'line-through' : 'none' }}
+              >
                 {event.title}
               </Typography>
               <IconButton
                 size="small"
                 onClick={(e) => { e.stopPropagation(); onDeleteEvent(event.id); }}
-                sx={{ ml: 'auto', p: 0 }}
+                sx={{ ml: 'auto', p: isMobile ? '4px' : 0 }}
               >
-                <CloseIcon sx={{ fontSize: 14 }} />
+                <CloseIcon sx={{ fontSize: isMobile ? 18 : 14 }} />
               </IconButton>
             </Box>
             {event.startTime && (
-              <Typography variant="caption" color="textSecondary" sx={{ fontSize: '0.65rem' }}>
+              <Typography variant="caption" color="textSecondary" sx={{ fontSize: isMobile ? '0.75rem' : '0.65rem' }}>
                 {event.startTime.substring(0, 5)} ({event.durationMinutes}m)
               </Typography>
             )}

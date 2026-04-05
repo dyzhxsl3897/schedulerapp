@@ -28,8 +28,10 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 - `api/goalsApi.ts` — API calls for objectives and goal entries
 - `context/AuthContext.tsx` — Auth state + localStorage persistence (token + user JSON)
 - `pages/` — LoginPage, RegisterPage, DashboardPage (weekly planner), YearlyGoalsPage (OGSM framework)
-- `components/WeekScheduler/` — 7-day calendar (6 AM–midnight, 60px/hour), DayColumn with dnd-kit drop targets
+- `components/WeekScheduler/` — 7-day calendar (desktop) / single-day tabbed view (mobile), DayColumn with dnd-kit drop targets
 - `components/ActivityList.tsx` — Draggable activity cards (dnd-kit useDraggable)
+- `components/MobileActivitySheet.tsx` — Bottom sheet (SwipeableDrawer) for activities on mobile
+- `hooks/useIsMobile.ts` — Shared responsive hook (useMediaQuery at md breakpoint)
 - `components/YearlyGoals/` — ObjectiveAccordion, ObjectiveFormDialog, GoalEntryFormDialog, OGSMTable, AcademicYearSelector
 - `components/` — GoogleCalendarButton, ChangePasswordDialog, ConfirmDialog, NavigationDrawer, AppBarUserSection, EventDialog, ActivityFormDialog, ActivityDetails
 - `utils/` — exportGoals.ts (Excel export via xlsx), academicYear.ts (Sept–Aug year calc), priority.ts (color utils)

@@ -15,6 +15,7 @@ export interface Activity {
   title: string;
   description: string;
   priority: Priority;
+  sortOrder: number;
   userId: string;
   createdAt: string;
   updatedAt: string;
