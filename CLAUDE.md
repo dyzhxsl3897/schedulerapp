@@ -15,17 +15,18 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 - **Database**: MySQL 8.0 (`scheduler_db`). Schema managed by Hibernate `ddl-auto=update`.
 
 ### Backend package layout (`com.scheduler.app`)
-- `controller/` — AuthController, ActivityController, EventController, ObjectiveController, GoalEntryController, GoogleCalendarController
+- `controller/` — AuthController, ActivityController, EventController, ObjectiveController, GoalEntryController, GoogleCalendarController, AiChatController
 - `model/` — User, Activity, Event, Objective, GoalEntry, GoogleCalendarToken (JPA entities with UUID PKs), Priority enum, StrategyStatus enum
 - `repository/` — Spring Data JPA repos with custom `findByUserId*` queries; ObjectiveRepository (by academicYear), GoalEntryRepository (by objectiveIds)
-- `service/` — GoogleCalendarService (OAuth2 flow, token management, event sync)
+- `service/` — GoogleCalendarService (OAuth2 flow, token management, event sync), AiChatService (AI model proxy)
 - `security/` — WebSecurityConfig, JWT filter (AuthTokenFilter), JwtUtils, UserDetailsServiceImpl
-- `payload/request/` — LoginRequest, SignupRequest, ActivityRequest, EventRequest, ObjectiveRequest, GoalEntryRequest, ChangePasswordRequest
-- `payload/response/` — JwtResponse, MessageResponse, EventResponse
+- `payload/request/` — LoginRequest, SignupRequest, ActivityRequest, EventRequest, ObjectiveRequest, GoalEntryRequest, ChangePasswordRequest, ChatRequest
+- `payload/response/` — JwtResponse, MessageResponse, EventResponse, ChatResponse
 
 ### Frontend layout (`/frontend/src`)
 - `api/axios.ts` — Axios instance (base URL `http://localhost:8080/api`) with Bearer token interceptor
 - `api/goalsApi.ts` — API calls for objectives and goal entries
+- `api/assistant.ts` — API call for AI chat (POST /api/ai/chat)
 - `context/AuthContext.tsx` — Auth state + localStorage persistence (token + user JSON)
 - `pages/` — LoginPage, RegisterPage, DashboardPage (weekly planner), YearlyGoalsPage (OGSM framework)
 - `components/WeekScheduler/` — 7-day calendar (desktop) / single-day tabbed view (mobile), DayColumn with dnd-kit drop targets
@@ -33,9 +34,9 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 - `components/MobileActivitySheet.tsx` — Bottom sheet (SwipeableDrawer) for activities on mobile
 - `hooks/useIsMobile.ts` — Shared responsive hook (useMediaQuery at md breakpoint)
 - `components/YearlyGoals/` — ObjectiveAccordion, ObjectiveFormDialog, GoalEntryFormDialog, OGSMTable, AcademicYearSelector
-- `components/` — GoogleCalendarButton, ChangePasswordDialog, ConfirmDialog, NavigationDrawer, AppBarUserSection, EventDialog, ActivityFormDialog, ActivityDetails
+- `components/` — GoogleCalendarButton, ChangePasswordDialog, ConfirmDialog, NavigationDrawer, AppBarUserSection, EventDialog, ActivityFormDialog, ActivityDetails, AssistantChat
 - `utils/` — exportGoals.ts (Excel export via xlsx), academicYear.ts (Sept–Aug year calc), priority.ts (color utils)
-- `types/index.ts` — Shared TypeScript interfaces (User, Activity, ScheduledEvent, Objective, GoalEntry, Priority, StrategyStatus)
+- `types/index.ts` — Shared TypeScript interfaces (User, Activity, ScheduledEvent, Objective, GoalEntry, Priority, StrategyStatus, ChatMessage, AssistantAction)
 
 ### Frontend routing
 - `/planner` — Weekly planner (DashboardPage)
@@ -48,6 +49,7 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 - **Scheduling**: Drag activity from backlog → drop on DayColumn → EventDialog for startTime/duration → POST `/api/events`
 - **Yearly Goals**: OGSM framework (Objective → Goal → Strategy → Measure) grouped by academic year, with Excel export and print support
 - **Google Calendar**: OAuth2 flow via `/api/google/auth-url` → callback → sync events between Google Calendar and the app
+- **AI Assistant**: Floating chat panel → POST `/api/ai/chat` → backend proxies to configurable OpenAI-compatible API (Ollama, OpenAI, etc.)
 - **User scoping**: All entities have `userId` (UUID); controllers filter by authenticated user's ID
 
 ### API endpoints
@@ -75,6 +77,9 @@ GET    /api/google/callback          — OAuth2 callback handler
 POST   /api/google/sync              — Sync events (?start, ?end)
 GET    /api/google/status            — Check connection status
 DELETE /api/google/disconnect        — Disconnect Google Calendar
+
+# AI Assistant
+POST   /api/ai/chat                 — Send chat message, returns AI reply
 ```
 
 ## Commands
@@ -113,6 +118,12 @@ npm run lint    # ESLint
 
 **Google Calendar** (Docker Compose env vars):
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` — OAuth2 credentials for Google Calendar integration
+
+**AI Assistant** (Docker Compose env vars or application.properties):
+- `AI_API_URL` — OpenAI-compatible chat completions endpoint (default: `http://localhost:11434/v1/chat/completions` for Ollama)
+- `AI_API_KEY` — API key (empty for local models)
+- `AI_API_MODEL` — Model name (default: `llama3`)
+- `AI_API_MAX_TOKENS` — Max response tokens (default: `1024`)
 
 **Security**:
 - `/api/auth/**` is public; all other endpoints require a valid JWT

@@ -70,3 +70,16 @@ export interface ScheduledEvent {
   createdAt?: string;
   updatedAt?: string;
 }
+
+export interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  pendingAction?: AssistantAction;
+}
+
+export interface AssistantAction {
+  description: string;
+  status: 'pending' | 'approved' | 'rejected';
+}

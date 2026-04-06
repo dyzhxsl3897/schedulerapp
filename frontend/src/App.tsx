@@ -6,6 +6,7 @@ import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import YearlyGoalsPage from './pages/YearlyGoalsPage';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
+import AssistantChat from './components/AssistantChat';
 
 const theme = createTheme({
   palette: {
@@ -17,6 +18,11 @@ const theme = createTheme({
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAuthenticated } = useAuth();
   return isAuthenticated ? <>{children}</> : <Navigate to="/login" />;
+};
+
+const AuthenticatedAssistant: React.FC = () => {
+  const { isAuthenticated } = useAuth();
+  return isAuthenticated ? <AssistantChat /> : null;
 };
 
 const AppContent: React.FC = () => {
@@ -44,6 +50,7 @@ const AppContent: React.FC = () => {
         <Route path="/" element={<Navigate to="/planner" />} />
         <Route path="*" element={<Navigate to="/planner" />} />
       </Routes>
+      <AuthenticatedAssistant />
     </Router>
   );
 };
