@@ -529,7 +529,7 @@ const DashboardPage: React.FC = () => {
         {deleteConfirm && deleteConfirm.affectedEvents.length > 0 && (
           <>
             <Typography variant="body2" sx={{ mt: 1 }}>
-              The following scheduled events will also be deleted:
+              The following scheduled events will be kept as standalone events (they will lose this activity's color and priority):
             </Typography>
             <List dense>
               {deleteConfirm.affectedEvents.map(e => (
@@ -542,7 +542,7 @@ const DashboardPage: React.FC = () => {
               ))}
             </List>
             <Typography variant="caption" color="textSecondary">
-              Note: Only this week's events are shown above. All events for this activity will be deleted.
+              Note: Only this week's events are shown above. Events from other weeks will also be kept.
             </Typography>
           </>
         )}
