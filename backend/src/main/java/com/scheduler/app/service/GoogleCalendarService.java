@@ -204,11 +204,13 @@ public class GoogleCalendarService {
 
         // Best-effort revoke with Google
         try {
+            var content = new com.google.api.client.http.UrlEncodedContent(
+                    java.util.Map.of("token", token.getAccessToken()));
             var request = HTTP_TRANSPORT.createRequestFactory()
                     .buildPostRequest(
                             new com.google.api.client.http.GenericUrl(
-                                    "https://oauth2.googleapis.com/revoke?token=" + token.getAccessToken()),
-                            null);
+                                    "https://oauth2.googleapis.com/revoke"),
+                            content);
             request.execute();
         } catch (Exception e) {
             logger.warn("Failed to revoke Google token (best-effort)", e);

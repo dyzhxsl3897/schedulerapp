@@ -5,7 +5,6 @@ import com.scheduler.app.model.Priority;
 import com.scheduler.app.payload.request.ActivityRequest;
 import com.scheduler.app.payload.response.MessageResponse;
 import com.scheduler.app.repository.ActivityRepository;
-import com.scheduler.app.repository.EventRepository;
 import com.scheduler.app.security.services.UserDetailsImpl;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +26,6 @@ import java.util.UUID;
 public class ActivityController {
     @Autowired
     ActivityRepository activityRepository;
-
-    @Autowired
-    EventRepository eventRepository;
 
     @GetMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -110,7 +106,6 @@ public class ActivityController {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Error: You are not authorized to delete this activity."));
             }
 
-            eventRepository.deleteByActivityId(id);
             activityRepository.delete(activity);
             return ResponseEntity.ok(new MessageResponse("Activity deleted successfully!"));
         }).orElse(ResponseEntity.notFound().build());
