@@ -1,13 +1,17 @@
 package com.scheduler.app.service;
 
 import com.scheduler.app.payload.request.ChatRequest;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 @Service
@@ -15,12 +19,15 @@ public class AiChatService {
 
     private static final Logger logger = LoggerFactory.getLogger(AiChatService.class);
 
-    private static final String SYSTEM_PROMPT = """
-            You are a helpful assistant for a scheduling application. You can only help with tasks related to this app: \
-            managing activities, scheduling events, setting goals, and organizing the user's planner. \
-            Do not help with anything unrelated to the app's functionality. \
-            Before performing any action, always describe what you plan to do and ask the user for explicit approval. \
-            Never execute actions without confirmation.""";
+    @Value("${ai.system-prompt-resource}")
+    private Resource systemPromptResource;
+
+    private String systemPrompt;
+
+    @PostConstruct
+    private void loadSystemPrompt() throws java.io.IOException {
+        systemPrompt = StreamUtils.copyToString(systemPromptResource.getInputStream(), StandardCharsets.UTF_8).trim();
+    }
 
     @Value("${ai.api.url}")
     private String apiUrl;
@@ -66,7 +73,7 @@ public class AiChatService {
     private List<Map<String, String>> buildMessages(ChatRequest request) {
         List<Map<String, String>> messages = new ArrayList<>();
 
-        messages.add(Map.of("role", "system", "content", SYSTEM_PROMPT));
+        messages.add(Map.of("role", "system", "content", systemPrompt));
 
         if (request.getHistory() != null) {
             for (ChatRequest.ChatMessageDto msg : request.getHistory()) {

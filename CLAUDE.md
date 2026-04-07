@@ -120,10 +120,11 @@ npm run lint    # ESLint
 - `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET`, `GOOGLE_REDIRECT_URI` — OAuth2 credentials for Google Calendar integration
 
 **AI Assistant** (Docker Compose env vars or application.properties):
-- `AI_API_URL` — OpenAI-compatible chat completions endpoint (default: `http://localhost:11434/v1/chat/completions` for Ollama)
+- `AI_API_URL` — OpenAI-compatible chat completions endpoint (default: `http://host.docker.internal:11434/v1/chat/completions` for host Ollama)
 - `AI_API_KEY` — API key (empty for local models)
-- `AI_API_MODEL` — Model name (default: `llama3`)
+- `AI_API_MODEL` — Model name (default: `qwen2.5:7b-instruct`)
 - `AI_API_MAX_TOKENS` — Max response tokens (default: `1024`)
+- Backend container reaches host Ollama via `host.docker.internal` (configured in `docker-compose.yml` `extra_hosts: host-gateway`). Ollama must bind to `0.0.0.0:11434` (set `OLLAMA_HOST=0.0.0.0:11434`) — `127.0.0.1` is unreachable from inside the container. Full setup steps in `README.md` → "AI Assistant Setup (Ollama)".
 
 **Security**:
 - `/api/auth/**` is public; all other endpoints require a valid JWT
