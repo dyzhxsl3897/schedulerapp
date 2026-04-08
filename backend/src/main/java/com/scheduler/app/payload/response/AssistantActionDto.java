@@ -4,14 +4,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Map;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ChatResponse {
-    private String reply;
-    private AssistantActionDto action;
-
-    public ChatResponse(String reply) {
-        this.reply = reply;
-    }
+public class AssistantActionDto {
+    private String type;
+    private Map<String, Object> payload;
 }

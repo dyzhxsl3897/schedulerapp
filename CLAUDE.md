@@ -49,7 +49,7 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 - **Scheduling**: Drag activity from backlog → drop on DayColumn → EventDialog for startTime/duration → POST `/api/events`
 - **Yearly Goals**: OGSM framework (Objective → Goal → Strategy → Measure) grouped by academic year, with Excel export and print support
 - **Google Calendar**: OAuth2 flow via `/api/google/auth-url` → callback → sync events between Google Calendar and the app
-- **AI Assistant**: Floating chat panel → POST `/api/ai/chat` → backend proxies to configurable OpenAI-compatible API (Ollama, OpenAI, etc.)
+- **AI Assistant**: Floating chat panel → POST `/api/ai/chat` → backend proxies to configurable OpenAI-compatible API (Ollama, OpenAI, etc.). The model can propose **actions** (`create_activity`, `create_event`) by emitting a fenced ` ```action {...} ``` ` JSON block. `AiChatService.parseReply` extracts and validates it, returns it as `ChatResponse.action`, and the frontend (`AssistantChat` + `api/assistantActions.ts`) executes it via the existing REST endpoints **only after the user clicks Approve**. Successful execution dispatches a `scheduler:assistant-data-changed` window event so `DashboardPage` refreshes. Today's date is appended to the system prompt at runtime so the model can resolve relative dates.
 - **User scoping**: All entities have `userId` (UUID); controllers filter by authenticated user's ID
 
 ### API endpoints

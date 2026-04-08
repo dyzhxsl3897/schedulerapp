@@ -8,7 +8,7 @@ A full-stack weekly planner and yearly goal tracker built with Spring Boot, Reac
 - **Weekly Planner:** Drag-and-drop scheduling with a 7-day calendar view (6 AM - midnight). Create activities and drag them onto time slots to schedule events. Standalone event creation, sibling event highlighting, and clear-week functionality.
 - **Yearly Goals (OGSM):** Track objectives, goals, strategies, and measures organized by academic year (Sept - Aug). Export to Excel or print.
 - **Google Calendar Integration:** OAuth2-based sync to import/export events with Google Calendar.
-- **AI Assistant:** Floating, draggable chat panel powered by a configurable OpenAI-compatible AI model (local Ollama, OpenAI, etc.). Scoped to app functionality, with an Approve/Reject flow before any action.
+- **AI Assistant:** Floating, draggable chat panel powered by a configurable OpenAI-compatible AI model (local Ollama, OpenAI, etc.). Scoped to app functionality. The assistant can actually create activities and schedule events on your behalf — it proposes a structured action, you Approve/Reject, and on approval the app calls the matching REST endpoint and refreshes the planner.
 - **Dockerized Environment:** One-command setup for the entire stack.
 
 ## Tech Stack

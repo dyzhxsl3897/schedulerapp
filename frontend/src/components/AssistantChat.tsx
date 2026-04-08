@@ -17,6 +17,7 @@ import CheckIcon from '@mui/icons-material/Check';
 import ClearIcon from '@mui/icons-material/Clear';
 import { ChatMessage } from '../types';
 import { sendChatMessage } from '../api/assistant';
+import { executeAssistantAction } from '../api/assistantActions';
 import { useIsMobile } from '../hooks/useIsMobile';
 
 const PANEL_WIDTH = 360;
@@ -99,12 +100,13 @@ const AssistantChat: React.FC = () => {
     setLoading(true);
 
     try {
-      const reply = await sendChatMessage(trimmed, messages);
+      const { reply, action } = await sendChatMessage(trimmed, messages);
       const assistantMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: 'assistant',
         content: reply,
         timestamp: new Date(),
+        pendingAction: action,
       };
       setMessages((prev) => [...prev, assistantMessage]);
     } catch {
@@ -120,22 +122,51 @@ const AssistantChat: React.FC = () => {
     }
   };
 
-  const handleApprove = (messageId: string) => {
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.id === messageId && m.pendingAction
-          ? { ...m, pendingAction: { ...m.pendingAction, status: 'approved' as const } }
-          : m
-      )
-    );
-    // Send approval context to the assistant
-    const approvalMsg: ChatMessage = {
-      id: crypto.randomUUID(),
-      role: 'user',
-      content: 'Approved. Please proceed.',
-      timestamp: new Date(),
-    };
-    setMessages((prev) => [...prev, approvalMsg]);
+  const handleApprove = async (messageId: string) => {
+    const target = messages.find((m) => m.id === messageId);
+    if (!target?.pendingAction) return;
+    const action = target.pendingAction;
+
+    try {
+      const { message } = await executeAssistantAction(action);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId && m.pendingAction
+            ? {
+                ...m,
+                pendingAction: {
+                  ...m.pendingAction,
+                  status: 'executed' as const,
+                  resultMessage: message,
+                },
+              }
+            : m
+        )
+      );
+      const confirmMsg: ChatMessage = {
+        id: crypto.randomUUID(),
+        role: 'assistant',
+        content: `Done — ${message}`,
+        timestamp: new Date(),
+      };
+      setMessages((prev) => [...prev, confirmMsg]);
+    } catch (err) {
+      console.error('Failed to execute assistant action', err);
+      setMessages((prev) =>
+        prev.map((m) =>
+          m.id === messageId && m.pendingAction
+            ? {
+                ...m,
+                pendingAction: {
+                  ...m.pendingAction,
+                  status: 'failed' as const,
+                  resultMessage: 'Action failed. Please try again.',
+                },
+              }
+            : m
+        )
+      );
+    }
   };
 
   const handleReject = (messageId: string) => {
@@ -149,7 +180,7 @@ const AssistantChat: React.FC = () => {
     const rejectMsg: ChatMessage = {
       id: crypto.randomUUID(),
       role: 'user',
-      content: 'Rejected. Do not proceed with that action.',
+      content: 'I rejected the previous proposed action. Do not propose it again unless I ask.',
       timestamp: new Date(),
     };
     setMessages((prev) => [...prev, rejectMsg]);
@@ -290,38 +321,68 @@ const AssistantChat: React.FC = () => {
               </Box>
             </Box>
 
-            {/* Approve / Reject buttons for pending actions */}
-            {msg.pendingAction && msg.pendingAction.status === 'pending' && (
-              <Box sx={{ display: 'flex', gap: 1, mt: 0.5, ml: 0.5 }}>
-                <Button
-                  size="small"
-                  variant="contained"
-                  color="success"
-                  startIcon={<CheckIcon />}
-                  onClick={() => handleApprove(msg.id)}
+            {/* Action preview + Approve / Reject buttons */}
+            {msg.pendingAction && (
+              <Box sx={{ mt: 0.5, ml: 0.5 }}>
+                <Box
+                  sx={{
+                    p: 1,
+                    mb: 0.5,
+                    borderRadius: 1,
+                    backgroundColor: 'rgba(25, 118, 210, 0.08)',
+                    border: '1px solid',
+                    borderColor: 'primary.light',
+                  }}
                 >
-                  Approve
-                </Button>
-                <Button
-                  size="small"
-                  variant="outlined"
-                  color="error"
-                  startIcon={<ClearIcon />}
-                  onClick={() => handleReject(msg.id)}
-                >
-                  Reject
-                </Button>
+                  <Typography variant="caption" sx={{ fontWeight: 600, display: 'block' }}>
+                    Proposed action: {msg.pendingAction.type}
+                  </Typography>
+                  <Typography
+                    variant="caption"
+                    component="pre"
+                    sx={{ m: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontFamily: 'monospace' }}
+                  >
+                    {JSON.stringify(msg.pendingAction.payload, null, 2)}
+                  </Typography>
+                </Box>
+                {msg.pendingAction.status === 'pending' && (
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      color="success"
+                      startIcon={<CheckIcon />}
+                      onClick={() => handleApprove(msg.id)}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      color="error"
+                      startIcon={<ClearIcon />}
+                      onClick={() => handleReject(msg.id)}
+                    >
+                      Reject
+                    </Button>
+                  </Box>
+                )}
+                {msg.pendingAction.status === 'executed' && (
+                  <Typography variant="caption" sx={{ color: 'success.main' }}>
+                    ✓ {msg.pendingAction.resultMessage ?? 'Executed'}
+                  </Typography>
+                )}
+                {msg.pendingAction.status === 'failed' && (
+                  <Typography variant="caption" sx={{ color: 'error.main' }}>
+                    ✗ {msg.pendingAction.resultMessage ?? 'Failed'}
+                  </Typography>
+                )}
+                {msg.pendingAction.status === 'rejected' && (
+                  <Typography variant="caption" sx={{ color: 'error.main' }}>
+                    Rejected
+                  </Typography>
+                )}
               </Box>
-            )}
-            {msg.pendingAction && msg.pendingAction.status === 'approved' && (
-              <Typography variant="caption" sx={{ ml: 0.5, color: 'success.main' }}>
-                Approved
-              </Typography>
-            )}
-            {msg.pendingAction && msg.pendingAction.status === 'rejected' && (
-              <Typography variant="caption" sx={{ ml: 0.5, color: 'error.main' }}>
-                Rejected
-              </Typography>
             )}
           </Box>
         ))}

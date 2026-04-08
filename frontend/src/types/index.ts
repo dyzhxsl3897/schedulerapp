@@ -79,7 +79,11 @@ export interface ChatMessage {
   pendingAction?: AssistantAction;
 }
 
+export type AssistantActionType = 'create_activity' | 'create_event';
+
 export interface AssistantAction {
-  description: string;
-  status: 'pending' | 'approved' | 'rejected';
+  type: AssistantActionType;
+  payload: Record<string, unknown>;
+  status: 'pending' | 'approved' | 'rejected' | 'executed' | 'failed';
+  resultMessage?: string;
 }

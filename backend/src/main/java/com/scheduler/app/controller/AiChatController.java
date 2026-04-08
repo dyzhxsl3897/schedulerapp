@@ -28,7 +28,7 @@ public class AiChatController {
                 .getContext().getAuthentication().getPrincipal();
         UUID userId = userDetails.getId();
 
-        String reply = aiChatService.chat(request, userId);
-        return ResponseEntity.ok(new ChatResponse(reply));
+        ChatResponse response = aiChatService.chat(request, userId);
+        return ResponseEntity.ok(response);
     }
 }

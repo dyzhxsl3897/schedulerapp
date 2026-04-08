@@ -17,6 +17,7 @@ import { DndContext, DragEndEvent, MouseSensor, TouchSensor, useSensor, useSenso
 import { arrayMove } from '@dnd-kit/sortable';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { ASSISTANT_DATA_CHANGED_EVENT } from '../api/assistantActions';
 import { Activity, ScheduledEvent } from '../types';
 import WeekScheduler from '../components/WeekScheduler';
 import ActivityList from '../components/ActivityList';
@@ -62,6 +63,16 @@ const DashboardPage: React.FC = () => {
   useEffect(() => {
     fetchActivities();
     fetchEvents();
+  }, [currentDate]);
+
+  // Refresh when the AI assistant successfully creates activities/events.
+  useEffect(() => {
+    const handler = () => {
+      fetchActivities();
+      fetchEvents();
+    };
+    window.addEventListener(ASSISTANT_DATA_CHANGED_EVENT, handler);
+    return () => window.removeEventListener(ASSISTANT_DATA_CHANGED_EVENT, handler);
   }, [currentDate]);
 
   const fetchActivities = async () => {
