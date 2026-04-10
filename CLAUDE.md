@@ -15,13 +15,13 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 - **Database**: MySQL 8.0 (`scheduler_db`). Schema managed by Hibernate `ddl-auto=update`.
 
 ### Backend package layout (`com.scheduler.app`)
-- `controller/` — AuthController, ActivityController, EventController, ObjectiveController, GoalEntryController, GoogleCalendarController, AiChatController
-- `model/` — User, Activity, Event, Objective, GoalEntry, GoogleCalendarToken (JPA entities with UUID PKs), Priority enum, StrategyStatus enum
-- `repository/` — Spring Data JPA repos with custom `findByUserId*` queries; ObjectiveRepository (by academicYear), GoalEntryRepository (by objectiveIds)
-- `service/` — GoogleCalendarService (OAuth2 flow, token management, event sync), AiChatService (AI model proxy)
+- `controller/` — AuthController, ActivityController, EventController, ObjectiveController, GoalEntryController, GoogleCalendarController, AiChatController, WeatherController
+- `model/` — User, Activity, Event, Objective, GoalEntry, GoogleCalendarToken, WeatherCache (JPA entities with UUID PKs), Priority enum, StrategyStatus enum
+- `repository/` — Spring Data JPA repos with custom `findByUserId*` queries; ObjectiveRepository (by academicYear), GoalEntryRepository (by objectiveIds), WeatherCacheRepository (by lat/lon/date)
+- `service/` — GoogleCalendarService (OAuth2 flow, token management, event sync), AiChatService (AI model proxy), WeatherService (Open-Meteo proxy with DB cache)
 - `security/` — WebSecurityConfig, JWT filter (AuthTokenFilter), JwtUtils, UserDetailsServiceImpl
 - `payload/request/` — LoginRequest, SignupRequest, ActivityRequest, EventRequest, ObjectiveRequest, GoalEntryRequest, ChangePasswordRequest, ChatRequest
-- `payload/response/` — JwtResponse, MessageResponse, EventResponse, ChatResponse
+- `payload/response/` — JwtResponse, MessageResponse, EventResponse, ChatResponse, WeatherResponse
 
 ### Frontend layout (`/frontend/src`)
 - `api/axios.ts` — Axios instance (base URL `http://localhost:8080/api`) with Bearer token interceptor
@@ -35,8 +35,9 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 - `hooks/useIsMobile.ts` — Shared responsive hook (useMediaQuery at md breakpoint)
 - `components/YearlyGoals/` — ObjectiveAccordion, ObjectiveFormDialog, GoalEntryFormDialog, OGSMTable, AcademicYearSelector
 - `components/` — GoogleCalendarButton, ChangePasswordDialog, ConfirmDialog, NavigationDrawer, AppBarUserSection, EventDialog, ActivityFormDialog, ActivityDetails, AssistantChat
-- `utils/` — exportGoals.ts (Excel export via xlsx), academicYear.ts (Sept–Aug year calc), priority.ts (color utils)
-- `types/index.ts` — Shared TypeScript interfaces (User, Activity, ScheduledEvent, Objective, GoalEntry, Priority, StrategyStatus, ChatMessage, AssistantAction)
+- `utils/` — exportGoals.ts (Excel export via xlsx), academicYear.ts (Sept–Aug year calc), priority.ts (color utils), weatherIcons.tsx (WMO code → MUI icon mapping)
+- `hooks/useWeather.ts` — Weather data fetching hook (geolocation + backend API, per-week caching)
+- `types/index.ts` — Shared TypeScript interfaces (User, Activity, ScheduledEvent, Objective, GoalEntry, DayWeather, Priority, StrategyStatus, ChatMessage, AssistantAction)
 
 ### Frontend routing
 - `/planner` — Weekly planner (DashboardPage)
@@ -50,6 +51,7 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 - **Yearly Goals**: OGSM framework (Objective → Goal → Strategy → Measure) grouped by academic year, with Excel export and print support
 - **Google Calendar**: OAuth2 flow via `/api/google/auth-url` → callback → sync events between Google Calendar and the app
 - **AI Assistant**: Floating chat panel → POST `/api/ai/chat` → backend proxies to configurable OpenAI-compatible API (Ollama, OpenAI, etc.). The model can propose **actions** (`create_activity`, `create_event`) by emitting a fenced ` ```action {...} ``` ` JSON block. `AiChatService.parseReply` extracts and validates it, returns it as `ChatResponse.action`, and the frontend (`AssistantChat` + `api/assistantActions.ts`) executes it via the existing REST endpoints **only after the user clicks Approve**. Successful execution dispatches a `scheduler:assistant-data-changed` window event so `DashboardPage` refreshes. Today's date is appended to the system prompt at runtime so the model can resolve relative dates.
+- **Weather**: Toggle button in toolbar → browser geolocation → GET `/api/weather?lat&lon&start&end` → backend proxies Open-Meteo API with MySQL cache (6h TTL) → weather icons + hi/lo temps displayed in DayColumn headers
 - **User scoping**: All entities have `userId` (UUID); controllers filter by authenticated user's ID
 
 ### API endpoints
@@ -80,6 +82,9 @@ DELETE /api/google/disconnect        — Disconnect Google Calendar
 
 # AI Assistant
 POST   /api/ai/chat                 — Send chat message, returns AI reply
+
+# Weather
+GET    /api/weather                 — Get weather forecast (?lat, ?lon, ?start, ?end), proxied from Open-Meteo with DB cache
 ```
 
 ## Commands

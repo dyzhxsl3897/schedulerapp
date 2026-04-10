@@ -79,6 +79,12 @@ export interface ChatMessage {
   pendingAction?: AssistantAction;
 }
 
+export interface DayWeather {
+  tempMax: number;
+  tempMin: number;
+  weatherCode: number;
+}
+
 export type AssistantActionType = 'create_activity' | 'create_event';
 
 export interface AssistantAction {

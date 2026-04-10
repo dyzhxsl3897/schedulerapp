@@ -8,6 +8,7 @@ import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import TodayIcon from '@mui/icons-material/Today';
 import PrintIcon from '@mui/icons-material/Print';
 import DeleteSweepIcon from '@mui/icons-material/DeleteSweep';
+import ThermostatIcon from '@mui/icons-material/Thermostat';
 import MenuIcon from '@mui/icons-material/Menu';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import AddIcon from '@mui/icons-material/Add';
@@ -30,12 +31,14 @@ import ConfirmDialog from '../components/ConfirmDialog';
 import NavigationDrawer from '../components/NavigationDrawer';
 import AppBarUserSection from '../components/AppBarUserSection';
 import { useIsMobile } from '../hooks/useIsMobile';
+import { useWeather } from '../hooks/useWeather';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
 
 const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const { weatherData, enabled: weatherEnabled, toggleWeather } = useWeather(currentDate);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
   const [selectedItem, setSelectedItem] = useState<Activity | ScheduledEvent | null>(null);
@@ -328,6 +331,9 @@ const DashboardPage: React.FC = () => {
                 weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
                 onSyncComplete={fetchEvents}
               />
+              <IconButton color="inherit" onClick={toggleWeather} size="small" title={weatherEnabled ? 'Hide weather' : 'Show weather'}>
+                <ThermostatIcon />
+              </IconButton>
               <IconButton color="inherit" onClick={() => setClearWeekConfirmOpen(true)} size="small" title="Clear all events this week">
                 <DeleteSweepIcon />
               </IconButton>
@@ -360,6 +366,10 @@ const DashboardPage: React.FC = () => {
               onSyncComplete={() => { fetchEvents(); setMoreMenuAnchor(null); }}
             />
           </Box>
+          <MenuItem onClick={() => { toggleWeather(); setMoreMenuAnchor(null); }}>
+            <ListItemIcon><ThermostatIcon fontSize="small" /></ListItemIcon>
+            {weatherEnabled ? 'Hide Weather' : 'Show Weather'}
+          </MenuItem>
           <MenuItem onClick={() => { setClearWeekConfirmOpen(true); setMoreMenuAnchor(null); }}>
             <ListItemIcon><DeleteSweepIcon fontSize="small" /></ListItemIcon>
             Clear Week
@@ -393,6 +403,7 @@ const DashboardPage: React.FC = () => {
               onSelectEvent={setSelectedItem}
               onDeleteEvent={handleDeleteEvent}
               selectedActivityId={selectedItem ? ('date' in selectedItem ? (selectedItem as ScheduledEvent).activityId : selectedItem.id) : undefined}
+              weatherData={weatherEnabled ? weatherData : null}
             />
           </Grid>
 

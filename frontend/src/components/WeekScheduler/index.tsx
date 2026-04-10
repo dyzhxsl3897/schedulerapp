@@ -1,9 +1,10 @@
 import React, { useMemo, useState, useEffect, useRef, useCallback } from 'react';
 import { Box, Typography, Tabs, Tab } from '@mui/material';
 import DayColumn from './DayColumn';
-import { ScheduledEvent } from '../../types';
+import { ScheduledEvent, DayWeather } from '../../types';
 import { startOfWeek, addDays, format, isToday } from 'date-fns';
 import { useIsMobile } from '../../hooks/useIsMobile';
+import { getWeatherIcon } from '../../utils/weatherIcons';
 
 interface WeekSchedulerProps {
   currentDate: Date;
@@ -12,13 +13,14 @@ interface WeekSchedulerProps {
   onSelectEvent: (event: ScheduledEvent) => void;
   onDeleteEvent: (id: string) => void;
   selectedActivityId?: string;
+  weatherData?: Record<string, DayWeather> | null;
 }
 
 const START_HOUR = 15;
 const END_HOUR = 21;
 const HOUR_HEIGHT = 60;
 
-const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onToggleComplete, onSelectEvent, onDeleteEvent, selectedActivityId }) => {
+const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onToggleComplete, onSelectEvent, onDeleteEvent, selectedActivityId, weatherData }) => {
   const isMobile = useIsMobile();
   const startDate = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday
   const days = Array.from({ length: 7 }).map((_, i) => addDays(startDate, i));
@@ -69,6 +71,9 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
       <Box sx={{ p: narrow ? 0.5 : 1, textAlign: 'center', borderBottom: '1px solid #ddd' }}>
         <Typography variant="subtitle2" sx={{ fontSize: narrow ? '0.7rem' : undefined }}>&nbsp;</Typography>
         <Typography variant="caption">&nbsp;</Typography>
+        {weatherData && (
+          <Typography variant="caption" sx={{ fontSize: '0.65rem', display: 'block' }}>&nbsp;</Typography>
+        )}
       </Box>
       {/* Time labels */}
       {Array.from({ length: END_HOUR - START_HOUR }).map((_, i) => (
@@ -135,6 +140,11 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
                   >
                     {format(day, 'd')}
                   </Typography>
+                  {weatherData?.[format(day, 'yyyy-MM-dd')] && (
+                    <Box sx={{ mt: 0.25, lineHeight: 1 }}>
+                      {getWeatherIcon(weatherData[format(day, 'yyyy-MM-dd')].weatherCode, 14)}
+                    </Box>
+                  )}
                 </Box>
               }
             />
@@ -159,6 +169,7 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
               spareHeight={maxSpareHeight}
               selectedActivityId={selectedActivityId}
               isMobile
+              weather={weatherData?.[format(selectedDayDate, 'yyyy-MM-dd')]}
             />
           </Box>
         </Box>
@@ -183,6 +194,7 @@ const WeekScheduler: React.FC<WeekSchedulerProps> = ({ currentDate, events, onTo
             onDeleteEvent={onDeleteEvent}
             spareHeight={maxSpareHeight}
             selectedActivityId={selectedActivityId}
+            weather={weatherData?.[format(day, 'yyyy-MM-dd')]}
           />
         ))}
       </Box>

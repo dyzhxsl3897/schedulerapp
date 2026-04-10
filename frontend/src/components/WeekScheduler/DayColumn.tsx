@@ -2,8 +2,9 @@ import React from 'react';
 import { useDroppable } from '@dnd-kit/core';
 import { Box, Typography, Paper, Checkbox, IconButton, Tooltip } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
-import { ScheduledEvent } from '../../types';
+import { ScheduledEvent, DayWeather } from '../../types';
 import { getPriorityColors } from '../../utils/priority';
+import { getWeatherIcon, getWeatherLabel } from '../../utils/weatherIcons';
 import { format } from 'date-fns';
 
 interface DayColumnProps {
@@ -15,6 +16,7 @@ interface DayColumnProps {
   spareHeight: number;
   selectedActivityId?: string;
   isMobile?: boolean;
+  weather?: DayWeather;
 }
 
 const START_HOUR = 15;
@@ -84,7 +86,7 @@ function computeOverlapLayout(events: ScheduledEvent[]): Map<string, { column: n
   return assignments;
 }
 
-const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, onDeleteEvent, spareHeight, selectedActivityId, isMobile }) => {
+const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, onSelectEvent, onDeleteEvent, spareHeight, selectedActivityId, isMobile, weather }) => {
   const dateStr = format(date, 'yyyy-MM-dd');
   const { isOver, setNodeRef } = useDroppable({
     id: `day-${dateStr}`,
@@ -138,6 +140,16 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
         <Box sx={{ p: 1, textAlign: 'center', borderBottom: '1px solid #ddd', backgroundColor: '#f5f5f5' }}>
           <Typography variant="subtitle2">{format(date, 'EEE')}</Typography>
           <Typography variant="caption">{format(date, 'MMM d')}</Typography>
+          {weather && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, mt: 0.25 }}>
+              <Tooltip title={getWeatherLabel(weather.weatherCode)}>
+                {getWeatherIcon(weather.weatherCode, 16)}
+              </Tooltip>
+              <Typography variant="caption" sx={{ fontSize: '0.65rem' }}>
+                {Math.round(weather.tempMax)}° / {Math.round(weather.tempMin)}°
+              </Typography>
+            </Box>
+          )}
         </Box>
       )}
       {/* Mobile: thin header with just the date for context */}
@@ -146,6 +158,16 @@ const DayColumn: React.FC<DayColumnProps> = ({ date, events, onToggleComplete, o
           <Typography variant="body2" fontWeight="bold">
             {format(date, 'EEEE, MMM d')}
           </Typography>
+          {weather && (
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5 }}>
+              <Tooltip title={getWeatherLabel(weather.weatherCode)}>
+                {getWeatherIcon(weather.weatherCode, 18)}
+              </Tooltip>
+              <Typography variant="body2">
+                {Math.round(weather.tempMax)}° / {Math.round(weather.tempMin)}°
+              </Typography>
+            </Box>
+          )}
         </Box>
       )}
 
