@@ -26,13 +26,21 @@ public class WeatherService {
     @Autowired
     private WeatherCacheRepository weatherCacheRepository;
 
-    public List<WeatherResponse> getWeather(double lat, double lon, LocalDate start, LocalDate end) {
+    public List<WeatherResponse> getWeather(double lat, double lon, LocalDate start, LocalDate end, boolean cacheOnly) {
         double roundedLat = Math.round(lat * 100.0) / 100.0;
         double roundedLon = Math.round(lon * 100.0) / 100.0;
 
         // Check cache
         List<WeatherCache> cached = weatherCacheRepository.findByLatitudeAndLongitudeAndDateBetween(
                 roundedLat, roundedLon, start, end);
+
+        // Cache-only mode: return whatever is in DB, no external API call
+        if (cacheOnly) {
+            return cached.stream()
+                    .map(c -> new WeatherResponse(c.getDate().toString(), c.getTempMax(), c.getTempMin(), c.getWeatherCode()))
+                    .sorted(Comparator.comparing(WeatherResponse::getDate))
+                    .collect(Collectors.toList());
+        }
 
         LocalDateTime cacheThreshold = LocalDateTime.now().minusHours(CACHE_HOURS);
         boolean cacheValid = !cached.isEmpty()

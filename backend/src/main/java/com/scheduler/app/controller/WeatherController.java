@@ -25,9 +25,10 @@ public class WeatherController {
             @RequestParam double lat,
             @RequestParam double lon,
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam(defaultValue = "false") boolean cacheOnly) {
 
-        List<WeatherResponse> weather = weatherService.getWeather(lat, lon, start, end);
+        List<WeatherResponse> weather = weatherService.getWeather(lat, lon, start, end, cacheOnly);
         return ResponseEntity.ok(weather);
     }
 }

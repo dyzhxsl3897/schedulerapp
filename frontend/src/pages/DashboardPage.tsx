@@ -38,7 +38,7 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
-  const { weatherData, enabled: weatherEnabled, toggleWeather } = useWeather(currentDate);
+  const { weatherData, syncWeather } = useWeather(currentDate);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
   const [selectedItem, setSelectedItem] = useState<Activity | ScheduledEvent | null>(null);
@@ -331,7 +331,7 @@ const DashboardPage: React.FC = () => {
                 weekEnd={format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd')}
                 onSyncComplete={fetchEvents}
               />
-              <IconButton color="inherit" onClick={toggleWeather} size="small" title={weatherEnabled ? 'Hide weather' : 'Show weather'}>
+              <IconButton color="inherit" onClick={syncWeather} size="small" title="Sync weather">
                 <ThermostatIcon />
               </IconButton>
               <IconButton color="inherit" onClick={() => setClearWeekConfirmOpen(true)} size="small" title="Clear all events this week">
@@ -366,9 +366,9 @@ const DashboardPage: React.FC = () => {
               onSyncComplete={() => { fetchEvents(); setMoreMenuAnchor(null); }}
             />
           </Box>
-          <MenuItem onClick={() => { toggleWeather(); setMoreMenuAnchor(null); }}>
+          <MenuItem onClick={() => { syncWeather(); setMoreMenuAnchor(null); }}>
             <ListItemIcon><ThermostatIcon fontSize="small" /></ListItemIcon>
-            {weatherEnabled ? 'Hide Weather' : 'Show Weather'}
+            Sync Weather
           </MenuItem>
           <MenuItem onClick={() => { setClearWeekConfirmOpen(true); setMoreMenuAnchor(null); }}>
             <ListItemIcon><DeleteSweepIcon fontSize="small" /></ListItemIcon>
@@ -403,7 +403,7 @@ const DashboardPage: React.FC = () => {
               onSelectEvent={setSelectedItem}
               onDeleteEvent={handleDeleteEvent}
               selectedActivityId={selectedItem ? ('date' in selectedItem ? (selectedItem as ScheduledEvent).activityId : selectedItem.id) : undefined}
-              weatherData={weatherEnabled ? weatherData : null}
+              weatherData={weatherData}
             />
           </Grid>
 
