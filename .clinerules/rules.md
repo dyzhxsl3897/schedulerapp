@@ -1,4 +1,4 @@
-# CLAUDE.md
+# rules.md
 
 This file provides guidance to when working with code in this repository.
 
