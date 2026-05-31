@@ -16,19 +16,21 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 
 ### Backend package layout (`com.scheduler.app`)
 - `controller/` — AuthController, ActivityController, EventController, ObjectiveController, GoalEntryController, GoogleCalendarController, AiChatController, WeatherController
-- `model/` — User, Activity, Event, Objective, GoalEntry, GoogleCalendarToken, WeatherCache (JPA entities with UUID PKs), Priority enum, StrategyStatus enum
-- `repository/` — Spring Data JPA repos with custom `findByUserId*` queries; ObjectiveRepository (by academicYear), GoalEntryRepository (by objectiveIds), WeatherCacheRepository (by lat/lon/date)
-- `service/` — GoogleCalendarService (OAuth2 flow, token management, event sync), AiChatService (AI model proxy), WeatherService (Open-Meteo proxy with DB cache)
+- `model/` — User, Activity, Event, Objective, GoalEntry, ParentChild, GoogleCalendarToken, WeatherCache (JPA entities with UUID PKs), Priority enum, StrategyStatus enum
+- `repository/` — Spring Data JPA repos with custom `findByUserId*` queries; ObjectiveRepository (by academicYear), GoalEntryRepository (by objectiveIds), ParentChildRepository (by parentId/childId), WeatherCacheRepository (by lat/lon/date)
+- `service/` — GoogleCalendarService (OAuth2 flow, token management, event sync), AiChatService (AI model proxy), WeatherService (Open-Meteo proxy with DB cache), ParentChildService (resolves target userId for parent-child operations)
 - `security/` — WebSecurityConfig, JWT filter (AuthTokenFilter), JwtUtils, UserDetailsServiceImpl
 - `payload/request/` — LoginRequest, SignupRequest, ActivityRequest, EventRequest, ObjectiveRequest, GoalEntryRequest, ChangePasswordRequest, ChatRequest
-- `payload/response/` — JwtResponse, MessageResponse, EventResponse, ChatResponse, WeatherResponse
+- `payload/response/` — JwtResponse, MessageResponse, EventResponse, ChatResponse, WeatherResponse, ChildResponse
 
 ### Frontend layout (`/frontend/src`)
 - `api/axios.ts` — Axios instance (base URL `http://localhost:8080/api`) with Bearer token interceptor
 - `api/goalsApi.ts` — API calls for objectives and goal entries
+- `api/parentChildApi.ts` — API calls for parent-child relationship management
 - `api/assistant.ts` — API call for AI chat (POST /api/ai/chat)
 - `context/AuthContext.tsx` — Auth state + localStorage persistence (token + user JSON)
-- `pages/` — LoginPage, RegisterPage, DashboardPage (weekly planner), YearlyGoalsPage (OGSM framework)
+- `pages/` — LoginPage, RegisterPage, DashboardPage (weekly planner), YearlyGoalsPage (OGSM framework), ChildrenPage (manage parent-child relationships)
+- `components/ChildSelector.tsx` — Dropdown to switch between viewing own data and children's data
 - `components/WeekScheduler/` — 7-day calendar (desktop) / single-day tabbed view (mobile), DayColumn with dnd-kit drop targets
 - `components/ActivityList.tsx` — Draggable activity cards (dnd-kit useDraggable)
 - `components/MobileActivitySheet.tsx` — Bottom sheet (SwipeableDrawer) for activities on mobile
@@ -42,6 +44,7 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 ### Frontend routing
 - `/planner` — Weekly planner (DashboardPage)
 - `/goals` — Yearly goals (YearlyGoalsPage)
+- `/parent/children` — Manage parent-child relationships (ChildrenPage)
 - `/` redirects to `/planner`
 - Navigation via left drawer (NavigationDrawer)
 
@@ -53,6 +56,7 @@ Full-stack scheduler app: Spring Boot backend (Java 21) + React/TypeScript front
 - **AI Assistant**: Floating chat panel → POST `/api/ai/chat` → backend proxies to configurable OpenAI-compatible API (Ollama, OpenAI, etc.). The model can propose **actions** (`create_activity`, `create_event`) by emitting a fenced ` ```action {...} ``` ` JSON block. `AiChatService.parseReply` extracts and validates it, returns it as `ChatResponse.action`, and the frontend (`AssistantChat` + `api/assistantActions.ts`) executes it via the existing REST endpoints **only after the user clicks Approve**. Successful execution dispatches a `scheduler:assistant-data-changed` window event so `DashboardPage` refreshes. Today's date is appended to the system prompt at runtime so the model can resolve relative dates.
 - **Weather**: Toggle button in toolbar → browser geolocation → GET `/api/weather?lat&lon&start&end` → backend proxies Open-Meteo API with MySQL cache (6h TTL) → weather icons + hi/lo temps displayed in DayColumn headers
 - **User scoping**: All entities have `userId` (UUID); controllers filter by authenticated user's ID
+- **Parent-Child**: Parent adds children via POST `/api/parent-children`. All data endpoints (activities, events, objectives, goal-entries) accept an optional `forUserId` query param. ParentChildService resolves the target user, verifying the relationship. If valid, the parent can view and manage the child's data as if it were their own. The child selector dropdown appears in the AppBar on both DashboardPage and YearlyGoalsPage.
 
 ### API endpoints
 ```
@@ -62,16 +66,23 @@ POST   /api/auth/signup             — Register new user
 POST   /api/auth/change-password    — Change password
 
 # Activities & Events
-GET|POST       /api/activities       — List/create activities
-PUT|DELETE     /api/activities/{id}  — Update/delete activity
-GET|POST       /api/events           — List/create events (query by date range)
-PUT|DELETE     /api/events/{id}      — Update/delete event
+GET|POST       /api/activities              — List (optional ?forUserId) / create (optional ?forUserId) activities
+PUT|DELETE     /api/activities/{id}         — Update/delete activity (optional ?forUserId)
+PUT            /api/activities/reorder      — Reorder activities (optional ?forUserId)
+
+GET|POST       /api/events                  — List (optional ?forUserId, ?start, ?end) / create (optional ?forUserId) events
+PUT|DELETE     /api/events/{id}             — Update/delete event (optional ?forUserId)
+DELETE         /api/events                  — Delete by date range (?start, ?end, optional ?forUserId)
 
 # Yearly Goals (OGSM)
-GET|POST       /api/objectives             — List (by ?academicYear) / create objectives
-PUT|DELETE     /api/objectives/{id}        — Update/delete objective (cascade deletes goal entries)
-GET|POST       /api/goal-entries           — List (by ?objectiveIds) / create goal entries
-PUT|DELETE     /api/goal-entries/{id}      — Update/delete goal entry
+GET|POST       /api/objectives              — List (by ?academicYear, optional ?forUserId) / create (optional ?forUserId) objectives
+PUT|DELETE     /api/objectives/{id}         — Update/delete objective (optional ?forUserId, cascade deletes goal entries)
+GET|POST       /api/goal-entries            — List (by ?objectiveIds, optional ?forUserId) / create (optional ?forUserId) goal entries
+PUT|DELETE     /api/goal-entries/{id}       — Update/delete goal entry (optional ?forUserId)
+
+# Parent-Child Management
+GET|POST       /api/parent-children          — List children / add child (by username)
+DELETE         /api/parent-children/{childId} — Remove child
 
 # Google Calendar Integration
 GET    /api/google/auth-url          — Get OAuth2 authorization URL

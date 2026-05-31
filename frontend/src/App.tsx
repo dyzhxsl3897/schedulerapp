@@ -5,6 +5,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import DashboardPage from './pages/DashboardPage';
 import YearlyGoalsPage from './pages/YearlyGoalsPage';
+import ChildrenPage from './pages/ChildrenPage';
 import { CssBaseline, ThemeProvider, createTheme } from '@mui/material';
 import AssistantChat from './components/AssistantChat';
 
@@ -39,11 +40,19 @@ const AppContent: React.FC = () => {
             </ProtectedRoute>
           }
         />
-        <Route
+          <Route
           path="/goals"
           element={
             <ProtectedRoute>
               <YearlyGoalsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/parent/children"
+          element={
+            <ProtectedRoute>
+              <ChildrenPage />
             </ProtectedRoute>
           }
         />

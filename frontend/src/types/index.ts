@@ -85,6 +85,12 @@ export interface DayWeather {
   weatherCode: number;
 }
 
+export interface ChildInfo {
+  id: string;
+  username: string;
+  createdAt: string;
+}
+
 export type AssistantActionType = 'create_activity' | 'create_event';
 
 export interface AssistantAction {

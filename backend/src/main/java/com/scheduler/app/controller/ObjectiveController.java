@@ -6,6 +6,7 @@ import com.scheduler.app.payload.response.MessageResponse;
 import com.scheduler.app.repository.GoalEntryRepository;
 import com.scheduler.app.repository.ObjectiveRepository;
 import com.scheduler.app.security.services.UserDetailsImpl;
+import com.scheduler.app.service.ParentChildService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,30 +29,40 @@ public class ObjectiveController {
     @Autowired
     GoalEntryRepository goalEntryRepository;
 
+    @Autowired
+    ParentChildService parentChildService;
+
     @GetMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<Objective>> getObjectives(@RequestParam(required = false) Integer academicYear) {
+    public ResponseEntity<List<Objective>> getObjectives(
+            @RequestParam(required = false) Integer academicYear,
+            @RequestParam(required = false) UUID forUserId) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
+
         List<Objective> objectives;
         if (academicYear != null) {
-            objectives = objectiveRepository.findByUserIdAndAcademicYearOrderBySortOrder(userDetails.getId(), academicYear);
+            objectives = objectiveRepository.findByUserIdAndAcademicYearOrderBySortOrder(targetUserId, academicYear);
         } else {
-            objectives = objectiveRepository.findByUserId(userDetails.getId());
+            objectives = objectiveRepository.findByUserId(targetUserId);
         }
         return ResponseEntity.ok(objectives);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Objective> createObjective(@Valid @RequestBody ObjectiveRequest request) {
+    public ResponseEntity<Objective> createObjective(
+            @RequestParam(required = false) UUID forUserId,
+            @Valid @RequestBody ObjectiveRequest request) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         Objective objective = new Objective(
                 request.getTitle(),
                 request.getDescription(),
                 request.getAcademicYear(),
                 request.getSortOrder() != null ? request.getSortOrder() : 0,
-                userDetails.getId()
+                targetUserId
         );
 
         Objective saved = objectiveRepository.save(objective);
@@ -60,11 +71,15 @@ public class ObjectiveController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> updateObjective(@PathVariable("id") UUID id, @Valid @RequestBody ObjectiveRequest request) {
+    public ResponseEntity<?> updateObjective(
+            @PathVariable("id") UUID id,
+            @RequestParam(required = false) UUID forUserId,
+            @Valid @RequestBody ObjectiveRequest request) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         return objectiveRepository.findById(id).map(objective -> {
-            if (!objective.getUserId().equals(userDetails.getId())) {
+            if (!objective.getUserId().equals(targetUserId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Error: You are not authorized to update this objective."));
             }
 
@@ -83,11 +98,14 @@ public class ObjectiveController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @Transactional
-    public ResponseEntity<?> deleteObjective(@PathVariable("id") UUID id) {
+    public ResponseEntity<?> deleteObjective(
+            @PathVariable("id") UUID id,
+            @RequestParam(required = false) UUID forUserId) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         return objectiveRepository.findById(id).map(objective -> {
-            if (!objective.getUserId().equals(userDetails.getId())) {
+            if (!objective.getUserId().equals(targetUserId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Error: You are not authorized to delete this objective."));
             }
 

@@ -8,6 +8,7 @@ import com.scheduler.app.payload.response.MessageResponse;
 import com.scheduler.app.repository.ActivityRepository;
 import com.scheduler.app.repository.EventRepository;
 import com.scheduler.app.security.services.UserDetailsImpl;
+import com.scheduler.app.service.ParentChildService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -32,19 +33,24 @@ public class EventController {
     @Autowired
     ActivityRepository activityRepository;
 
+    @Autowired
+    ParentChildService parentChildService;
+
     @GetMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<List<EventResponse>> getEvents(
             @RequestParam(name = "start", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+            @RequestParam(name = "end", required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam(required = false) UUID forUserId) {
 
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         List<Event> events;
         if (start != null && end != null) {
-            events = eventRepository.findByUserIdAndDateBetween(userDetails.getId(), start, end);
+            events = eventRepository.findByUserIdAndDateBetween(targetUserId, start, end);
         } else {
-            events = eventRepository.findByUserId(userDetails.getId());
+            events = eventRepository.findByUserId(targetUserId);
         }
 
         return ResponseEntity.ok(toEventResponses(events));
@@ -52,8 +58,11 @@ public class EventController {
 
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<EventResponse> createEvent(@Valid @RequestBody EventRequest eventRequest) {
+    public ResponseEntity<EventResponse> createEvent(
+            @RequestParam(required = false) UUID forUserId,
+            @Valid @RequestBody EventRequest eventRequest) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         Event event = new Event(
                 eventRequest.getTitle(),
@@ -61,7 +70,7 @@ public class EventController {
                 eventRequest.getDate(),
                 eventRequest.getStartTime(),
                 eventRequest.getDurationMinutes(),
-                userDetails.getId(),
+                targetUserId,
                 eventRequest.getActivityId()
         );
 
@@ -71,11 +80,15 @@ public class EventController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> updateEvent(@PathVariable("id") UUID id, @Valid @RequestBody EventRequest eventRequest) {
+    public ResponseEntity<?> updateEvent(
+            @PathVariable("id") UUID id,
+            @RequestParam(required = false) UUID forUserId,
+            @Valid @RequestBody EventRequest eventRequest) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         return eventRepository.findById(id).map(event -> {
-            if (!event.getUserId().equals(userDetails.getId())) {
+            if (!event.getUserId().equals(targetUserId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Error: You are not authorized to update this event."));
             }
 
@@ -97,19 +110,24 @@ public class EventController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> deleteEventsByDateRange(
             @RequestParam(name = "start") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start,
-            @RequestParam(name = "end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end) {
+            @RequestParam(name = "end") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate end,
+            @RequestParam(required = false) UUID forUserId) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        eventRepository.deleteByUserIdAndDateBetween(userDetails.getId(), start, end);
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
+        eventRepository.deleteByUserIdAndDateBetween(targetUserId, start, end);
         return ResponseEntity.ok(new MessageResponse("Events deleted successfully!"));
     }
 
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> deleteEvent(@PathVariable("id") UUID id) {
+    public ResponseEntity<?> deleteEvent(
+            @PathVariable("id") UUID id,
+            @RequestParam(required = false) UUID forUserId) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         return eventRepository.findById(id).map(event -> {
-            if (!event.getUserId().equals(userDetails.getId())) {
+            if (!event.getUserId().equals(targetUserId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Error: You are not authorized to delete this event."));
             }
 

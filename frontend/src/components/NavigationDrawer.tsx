@@ -5,6 +5,7 @@ import {
 } from '@mui/material';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import FlagIcon from '@mui/icons-material/Flag';
+import PeopleIcon from '@mui/icons-material/People';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -16,6 +17,7 @@ interface NavigationDrawerProps {
 const menuItems = [
   { label: 'Weekly Planner', icon: <CalendarMonthIcon />, path: '/planner' },
   { label: 'Yearly Goals', icon: <FlagIcon />, path: '/goals' },
+  { label: 'My Children', icon: <PeopleIcon />, path: '/parent/children' },
 ];
 
 const NavigationDrawer: React.FC<NavigationDrawerProps> = ({ open, onClose }) => {

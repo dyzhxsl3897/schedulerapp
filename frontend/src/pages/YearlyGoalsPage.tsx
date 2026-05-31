@@ -8,6 +8,7 @@ import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import AddIcon from '@mui/icons-material/Add';
 import NavigationDrawer from '../components/NavigationDrawer';
 import AppBarUserSection from '../components/AppBarUserSection';
+import ChildSelector from '../components/ChildSelector';
 import AcademicYearSelector from '../components/YearlyGoals/AcademicYearSelector';
 import { getCurrentAcademicYear } from '../utils/academicYear';
 import ObjectiveAccordion from '../components/YearlyGoals/ObjectiveAccordion';
@@ -25,6 +26,7 @@ import { exportGoalsToExcel } from '../utils/exportGoals';
 const YearlyGoalsPage: React.FC = () => {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [academicYear, setAcademicYear] = useState<number>(getCurrentAcademicYear());
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const [objectives, setObjectives] = useState<Objective[]>([]);
   const [goalEntries, setGoalEntries] = useState<GoalEntry[]>([]);
   const [loading, setLoading] = useState(false);
@@ -46,11 +48,11 @@ const YearlyGoalsPage: React.FC = () => {
   const loadData = useCallback(async () => {
     setLoading(true);
     try {
-      const objs = await getObjectives(academicYear);
+      const objs = await getObjectives(academicYear, selectedChildId);
       setObjectives(objs);
       if (objs.length > 0) {
         const ids = objs.map((o) => o.id);
-        const entries = await getGoalEntries(ids);
+        const entries = await getGoalEntries(ids, selectedChildId);
         setGoalEntries(entries);
       } else {
         setGoalEntries([]);
@@ -60,7 +62,7 @@ const YearlyGoalsPage: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  }, [academicYear]);
+  }, [academicYear, selectedChildId]);
 
   useEffect(() => {
     loadData();
@@ -85,14 +87,14 @@ const YearlyGoalsPage: React.FC = () => {
         description: data.description,
         academicYear,
         sortOrder: editingObjective.sortOrder,
-      });
+      }, selectedChildId);
     } else {
       await createObjective({
         title: data.title,
         description: data.description,
         academicYear,
         sortOrder: objectives.length,
-      });
+      }, selectedChildId);
     }
     loadData();
   };
@@ -104,7 +106,7 @@ const YearlyGoalsPage: React.FC = () => {
       message: `Delete "${obj.title}" and all its goals?`,
       onConfirm: async () => {
         setConfirmDialog((prev) => ({ ...prev, open: false }));
-        await deleteObjective(obj.id);
+        await deleteObjective(obj.id, selectedChildId);
         loadData();
       },
     });
@@ -148,9 +150,9 @@ const YearlyGoalsPage: React.FC = () => {
         : goalEntries.filter((e) => e.objectiveId === activeObjectiveId).length,
     };
     if (editingEntry) {
-      await updateGoalEntry(editingEntry.id, payload);
+      await updateGoalEntry(editingEntry.id, payload, selectedChildId);
     } else {
-      await createGoalEntry(payload);
+      await createGoalEntry(payload, selectedChildId);
     }
     loadData();
   };
@@ -162,7 +164,7 @@ const YearlyGoalsPage: React.FC = () => {
       message: 'Delete this goal?',
       onConfirm: async () => {
         setConfirmDialog((prev) => ({ ...prev, open: false }));
-        await deleteGoalEntry(entry.id);
+        await deleteGoalEntry(entry.id, selectedChildId);
         loadData();
       },
     });
@@ -178,6 +180,7 @@ const YearlyGoalsPage: React.FC = () => {
           <Typography variant="h6" component="div" sx={{ mr: 2 }}>
             Yearly Goals
           </Typography>
+          <ChildSelector selectedChildId={selectedChildId} onChange={setSelectedChildId} />
           <AcademicYearSelector value={academicYear} onChange={setAcademicYear} />
           <Box sx={{ flexGrow: 1 }} />
           <IconButton color="inherit" onClick={() => exportGoalsToExcel(objectives, goalEntries, academicYear)} title="Export to Excel">

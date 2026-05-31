@@ -6,6 +6,7 @@ import com.scheduler.app.payload.request.ActivityRequest;
 import com.scheduler.app.payload.response.MessageResponse;
 import com.scheduler.app.repository.ActivityRepository;
 import com.scheduler.app.security.services.UserDetailsImpl;
+import com.scheduler.app.service.ParentChildService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,20 +28,28 @@ public class ActivityController {
     @Autowired
     ActivityRepository activityRepository;
 
+    @Autowired
+    ParentChildService parentChildService;
+
     @GetMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<List<Activity>> getAllActivities() {
+    public ResponseEntity<List<Activity>> getAllActivities(
+            @RequestParam(required = false) UUID forUserId) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<Activity> activities = activityRepository.findByUserIdOrderBySortOrderAsc(userDetails.getId());
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
+        List<Activity> activities = activityRepository.findByUserIdOrderBySortOrderAsc(targetUserId);
         return ResponseEntity.ok(activities);
     }
 
     @PostMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<Activity> createActivity(@Valid @RequestBody ActivityRequest activityRequest) {
+    public ResponseEntity<Activity> createActivity(
+            @RequestParam(required = false) UUID forUserId,
+            @Valid @RequestBody ActivityRequest activityRequest) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        
-        List<Activity> existing = activityRepository.findByUserIdOrderBySortOrderAsc(userDetails.getId());
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
+
+        List<Activity> existing = activityRepository.findByUserIdOrderBySortOrderAsc(targetUserId);
         int nextSortOrder = existing.isEmpty() ? 0 : existing.stream()
                 .mapToInt(a -> a.getSortOrder() != null ? a.getSortOrder() : 0)
                 .max().orElse(0) + 1;
@@ -49,7 +58,7 @@ public class ActivityController {
                 activityRequest.getTitle(),
                 activityRequest.getDescription(),
                 activityRequest.getPriority() != null ? activityRequest.getPriority() : Priority.MEDIUM,
-                userDetails.getId(),
+                targetUserId,
                 nextSortOrder
         );
 
@@ -59,11 +68,15 @@ public class ActivityController {
 
     @PutMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public ResponseEntity<?> updateActivity(@PathVariable("id") UUID id, @Valid @RequestBody ActivityRequest activityRequest) {
+    public ResponseEntity<?> updateActivity(
+            @PathVariable("id") UUID id,
+            @RequestParam(required = false) UUID forUserId,
+            @Valid @RequestBody ActivityRequest activityRequest) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         return activityRepository.findById(id).map(activity -> {
-            if (!activity.getUserId().equals(userDetails.getId())) {
+            if (!activity.getUserId().equals(targetUserId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Error: You are not authorized to update this activity."));
             }
 
@@ -72,7 +85,7 @@ public class ActivityController {
             if (activityRequest.getPriority() != null) {
                 activity.setPriority(activityRequest.getPriority());
             }
-            
+
             activityRepository.save(activity);
             return ResponseEntity.ok(activity);
         }).orElse(ResponseEntity.notFound().build());
@@ -81,12 +94,15 @@ public class ActivityController {
     @PutMapping("/reorder")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @Transactional
-    public ResponseEntity<?> reorderActivities(@RequestBody List<ReorderRequest> reorderRequests) {
+    public ResponseEntity<?> reorderActivities(
+            @RequestParam(required = false) UUID forUserId,
+            @RequestBody List<ReorderRequest> reorderRequests) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         for (ReorderRequest req : reorderRequests) {
             activityRepository.findById(req.getId()).ifPresent(activity -> {
-                if (activity.getUserId().equals(userDetails.getId())) {
+                if (activity.getUserId().equals(targetUserId)) {
                     activity.setSortOrder(req.getSortOrder());
                     activityRepository.save(activity);
                 }
@@ -98,11 +114,14 @@ public class ActivityController {
     @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @Transactional
-    public ResponseEntity<?> deleteActivity(@PathVariable("id") UUID id) {
+    public ResponseEntity<?> deleteActivity(
+            @PathVariable("id") UUID id,
+            @RequestParam(required = false) UUID forUserId) {
         UserDetailsImpl userDetails = (UserDetailsImpl) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        UUID targetUserId = parentChildService.resolveTargetUserId(forUserId, userDetails.getId());
 
         return activityRepository.findById(id).map(activity -> {
-            if (!activity.getUserId().equals(userDetails.getId())) {
+            if (!activity.getUserId().equals(targetUserId)) {
                 return ResponseEntity.status(HttpStatus.FORBIDDEN).body(new MessageResponse("Error: You are not authorized to delete this activity."));
             }
 

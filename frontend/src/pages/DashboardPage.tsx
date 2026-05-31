@@ -30,6 +30,7 @@ import MobileActivitySheet from '../components/MobileActivitySheet';
 import ConfirmDialog from '../components/ConfirmDialog';
 import NavigationDrawer from '../components/NavigationDrawer';
 import AppBarUserSection from '../components/AppBarUserSection';
+import ChildSelector from '../components/ChildSelector';
 import { useIsMobile } from '../hooks/useIsMobile';
 import { useWeather } from '../hooks/useWeather';
 import { format, startOfWeek, endOfWeek, addWeeks, subWeeks } from 'date-fns';
@@ -38,6 +39,7 @@ const DashboardPage: React.FC = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
   const [currentDate, setCurrentDate] = useState<Date>(new Date());
+  const [selectedChildId, setSelectedChildId] = useState<string | null>(null);
   const { weatherData, syncWeather } = useWeather(currentDate);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [events, setEvents] = useState<ScheduledEvent[]>([]);
@@ -63,10 +65,12 @@ const DashboardPage: React.FC = () => {
     useSensor(TouchSensor, { activationConstraint: { delay: 250, tolerance: 5 } })
   );
 
+  const forUserIdParam = selectedChildId ? { forUserId: selectedChildId } : {};
+
   useEffect(() => {
     fetchActivities();
     fetchEvents();
-  }, [currentDate]);
+  }, [currentDate, selectedChildId]);
 
   // Refresh when the AI assistant successfully creates activities/events.
   useEffect(() => {
@@ -76,11 +80,11 @@ const DashboardPage: React.FC = () => {
     };
     window.addEventListener(ASSISTANT_DATA_CHANGED_EVENT, handler);
     return () => window.removeEventListener(ASSISTANT_DATA_CHANGED_EVENT, handler);
-  }, [currentDate]);
+  }, [currentDate, selectedChildId]);
 
   const fetchActivities = async () => {
     try {
-      const res = await api.get('/activities');
+      const res = await api.get('/activities', { params: forUserIdParam });
       setActivities(res.data);
     } catch (err) {
       console.error('Failed to fetch activities', err);
@@ -91,7 +95,7 @@ const DashboardPage: React.FC = () => {
     try {
       const start = format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
       const end = format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-      const res = await api.get(`/events?start=${start}&end=${end}`);
+      const res = await api.get('/events', { params: { start, end, ...forUserIdParam } });
       setEvents(res.data);
     } catch (err) {
       console.error('Failed to fetch events', err);
@@ -133,7 +137,7 @@ const DashboardPage: React.FC = () => {
       setActivities(reordered);
 
       const reorderPayload = reordered.map((a, index) => ({ id: a.id, sortOrder: index }));
-      api.put('/activities/reorder', reorderPayload).catch(err => {
+      api.put('/activities/reorder', reorderPayload, { params: forUserIdParam }).catch(err => {
         console.error('Failed to reorder activities', err);
         fetchActivities();
       });
@@ -144,7 +148,6 @@ const DashboardPage: React.FC = () => {
     if (!droppedActivity || !droppedDate) return;
 
     try {
-      // Backend expects start_time as HH:mm:ss
       const startTimeFormatted = data.startTime ? `${data.startTime}:00` : null;
 
       await api.post('/events', {
@@ -153,7 +156,7 @@ const DashboardPage: React.FC = () => {
         date: droppedDate,
         startTime: startTimeFormatted,
         durationMinutes: data.durationMinutes,
-      });
+      }, { params: forUserIdParam });
       fetchEvents();
     } catch (err) {
       console.error('Failed to save event', err);
@@ -164,7 +167,7 @@ const DashboardPage: React.FC = () => {
     try {
       const event = events.find(e => e.id === id);
       if (!event) return;
-      
+
       await api.put(`/events/${id}`, {
         title: event.title,
         description: event.description,
@@ -173,9 +176,8 @@ const DashboardPage: React.FC = () => {
         startTime: event.startTime,
         durationMinutes: event.durationMinutes,
         isCompleted: completed,
-      });
+      }, { params: forUserIdParam });
       await fetchEvents();
-      // Update selectedItem if the toggled event is currently selected
       if (selectedItem && 'date' in selectedItem && selectedItem.id === id) {
         setSelectedItem({ ...selectedItem, isCompleted: completed } as ScheduledEvent);
       }
@@ -187,9 +189,9 @@ const DashboardPage: React.FC = () => {
   const handleSaveActivity = async (data: Partial<Activity>) => {
     try {
       if (editingActivity) {
-        await api.put(`/activities/${editingActivity.id}`, data);
+        await api.put(`/activities/${editingActivity.id}`, data, { params: forUserIdParam });
       } else {
-        await api.post('/activities', data);
+        await api.post('/activities', data, { params: forUserIdParam });
       }
       fetchActivities();
       fetchEvents();
@@ -208,7 +210,7 @@ const DashboardPage: React.FC = () => {
   const confirmDeleteActivity = async () => {
     if (!deleteConfirm) return;
     try {
-      await api.delete(`/activities/${deleteConfirm.activity.id}`);
+      await api.delete(`/activities/${deleteConfirm.activity.id}`, { params: forUserIdParam });
       fetchActivities();
       fetchEvents();
     } catch (err) {
@@ -219,7 +221,7 @@ const DashboardPage: React.FC = () => {
 
   const handleDeleteEvent = async (id: string) => {
     try {
-      await api.delete(`/events/${id}`);
+      await api.delete(`/events/${id}`, { params: forUserIdParam });
       setSelectedItem(prev => prev && 'date' in prev && prev.id === id ? null : prev);
       fetchEvents();
     } catch (err) {
@@ -231,7 +233,7 @@ const DashboardPage: React.FC = () => {
     try {
       const start = format(startOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
       const end = format(endOfWeek(currentDate, { weekStartsOn: 1 }), 'yyyy-MM-dd');
-      await api.delete(`/events?start=${start}&end=${end}`);
+      await api.delete('/events', { params: { start, end, ...forUserIdParam } });
       setSelectedItem(prev => prev && 'date' in prev ? null : prev);
       fetchEvents();
     } catch (err) {
@@ -258,11 +260,10 @@ const DashboardPage: React.FC = () => {
         startTime: startTimeFormatted,
         durationMinutes: data.durationMinutes,
         isCompleted: editingEvent.isCompleted,
-      });
+      }, { params: forUserIdParam });
       fetchEvents();
-      // Update selectedItem if it's the event we just edited
       if (selectedItem && 'date' in selectedItem && selectedItem.id === editingEvent.id) {
-        const res = await api.get(`/events?start=${editingEvent.date}&end=${editingEvent.date}`);
+        const res = await api.get('/events', { params: { start: editingEvent.date, end: editingEvent.date, ...forUserIdParam } });
         const updated = res.data.find((e: ScheduledEvent) => e.id === editingEvent.id);
         if (updated) setSelectedItem(updated);
       }
@@ -281,7 +282,7 @@ const DashboardPage: React.FC = () => {
         date: data.date,
         startTime: startTimeFormatted,
         durationMinutes: data.durationMinutes,
-      });
+      }, { params: forUserIdParam });
       fetchEvents();
     } catch (err) {
       console.error('Failed to create event', err);
@@ -300,6 +301,7 @@ const DashboardPage: React.FC = () => {
               Weekly Scheduler
             </Typography>
           )}
+          <ChildSelector selectedChildId={selectedChildId} onChange={setSelectedChildId} />
           <IconButton color="inherit" onClick={() => setCurrentDate(d => subWeeks(d, 1))} size="small">
             <ChevronLeftIcon />
           </IconButton>
@@ -389,7 +391,7 @@ const DashboardPage: React.FC = () => {
         className="print-only"
         sx={{ textAlign: 'center', fontWeight: 'bold', pt: 2 }}
       >
-        {user?.username}'s Weekly Schedule
+        {selectedChildId ? 'Child\'s Weekly Schedule' : `${user?.username}'s Weekly Schedule`}
       </Typography>
 
       <DndContext sensors={sensors} onDragEnd={handleDragEnd}>
