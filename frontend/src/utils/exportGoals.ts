@@ -54,6 +54,17 @@ export function exportGoalsToExcel(
   const wsData = [headers, ...rows];
   const ws = XLSX.utils.aoa_to_sheet(wsData);
 
+  // Enable text wrapping for cells with line breaks (and set vertical top alignment)
+  for (let R = 0; R < wsData.length; R++) {
+    for (let C = 0; C < wsData[R].length; C++) {
+      const cellRef = XLSX.utils.encode_cell({ r: R, c: C });
+      const cell = ws[cellRef];
+      if (cell && typeof cell.v === 'string' && cell.v.includes('\n')) {
+        cell.s = { alignment: { wrapText: true, vertical: 'top' } };
+      }
+    }
+  }
+
   // Column widths
   ws['!cols'] = [
     { wch: 30 }, // Objective
