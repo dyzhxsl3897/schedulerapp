@@ -26,7 +26,7 @@ const OGSMTable: React.FC<OGSMTableProps> = ({ entries, onAddEntry, onEditEntry,
   return (
     <Box>
       <TableContainer component={Paper} variant="outlined" sx={{ mb: 1 }}>
-        <Table size="small" className="goals-print-table">
+        <Table size="small" className="goals-print-table" sx={{ tableLayout: 'fixed', width: '100%' }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: 'grey.100' }}>
               <TableCell sx={{ fontWeight: 'bold' }}>Goal</TableCell>
@@ -53,16 +53,16 @@ const OGSMTable: React.FC<OGSMTableProps> = ({ entries, onAddEntry, onEditEntry,
                 const sc = statusConfig[entry.status] || statusConfig[StrategyStatus.NOT_STARTED];
                 return (
                   <TableRow key={entry.id} hover>
-                    <TableCell sx={{ whiteSpace: 'pre-wrap', maxWidth: 200 }}>{entry.goal}</TableCell>
-                    <TableCell sx={{ whiteSpace: 'pre-wrap', maxWidth: 200 }}>{entry.strategy}</TableCell>
-                    <TableCell sx={{ whiteSpace: 'pre-wrap', maxWidth: 200 }}>{entry.measure}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: 200 }}>{entry.goal}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: 200 }}>{entry.strategy}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: 200 }}>{entry.measure}</TableCell>
                     <TableCell sx={{ whiteSpace: 'nowrap' }}>
                       {entry.endDate ? new Date(entry.endDate + 'T00:00:00').toLocaleDateString() : ''}
                     </TableCell>
                     <TableCell>
                       <Rating value={entry.importance} readOnly size="small" max={5} />
                     </TableCell>
-                    <TableCell sx={{ whiteSpace: 'pre-wrap', maxWidth: 200 }}>{entry.result}</TableCell>
+                    <TableCell sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word', maxWidth: 200 }}>{entry.result}</TableCell>
                     <TableCell>
                       <Chip label={sc.label} color={sc.color} size="small" />
                     </TableCell>
